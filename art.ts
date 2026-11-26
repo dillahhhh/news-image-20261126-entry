@@ -145,8 +145,6 @@ export function drawGaza(g, x, y, w, h) {
   // Dusty orange-grey sky.
   g.rect(x, y, w, h, [196, 158, 118]);
   g.rect(x, y, w, Math.floor(h * 0.30), [214, 178, 138]);
-  // Pale sun.
-  g.circle(x + Math.floor(w * 0.82), y + Math.floor(h * 0.18), Math.floor(w * 0.09), [245, 224, 180]);
 
   // Ruined skyline silhouette: broken dark-grey buildings, uneven heights.
   const baseY = y + h;
@@ -170,34 +168,45 @@ export function drawGaza(g, x, y, w, h) {
   // Rubble line at the base.
   g.rect(x, baseY - Math.floor(h * 0.06), w, Math.floor(h * 0.06), GREY);
 
-  // Dove in flight: white body (circles), swept wings (triangles).
-  const dx = x + Math.floor(w * 0.42);
-  const dy = y + Math.floor(h * 0.28);
-  // Raised wing.
-  g.tri(dx - Math.floor(w * 0.02), dy, dx + Math.floor(w * 0.10), dy - Math.floor(h * 0.22), dx + Math.floor(w * 0.16), dy - Math.floor(h * 0.05), WHITE);
-  // Body.
-  g.circle(dx, dy, Math.floor(w * 0.075), WHITE);
-  g.circle(dx + Math.floor(w * 0.08), dy + Math.floor(h * 0.01), Math.floor(w * 0.05), WHITE);
-  // Head + beak.
-  g.circle(dx + Math.floor(w * 0.15), dy - Math.floor(h * 0.02), Math.floor(w * 0.035), WHITE);
-  g.tri(
-    dx + Math.floor(w * 0.18), dy - Math.floor(h * 0.03),
-    dx + Math.floor(w * 0.23), dy - Math.floor(h * 0.01),
-    dx + Math.floor(w * 0.18), dy + Math.floor(h * 0.01),
-    ORANGE
-  );
-  // Tail.
-  g.tri(dx - Math.floor(w * 0.06), dy, dx - Math.floor(w * 0.16), dy - Math.floor(h * 0.06), dx - Math.floor(w * 0.16), dy + Math.floor(h * 0.05), WHITE);
-  // Lower wing, swept down.
-  g.tri(dx - Math.floor(w * 0.01), dy + Math.floor(h * 0.02), dx + Math.floor(w * 0.08), dy + Math.floor(h * 0.16), dx + Math.floor(w * 0.14), dy + Math.floor(h * 0.03), WHITE);
-
-  // Olive branch in the beak: green stem + 3 leaves.
-  const bx0 = dx + Math.floor(w * 0.20);
-  const by0 = dy - Math.floor(h * 0.01);
-  g.line(bx0, by0, bx0 + Math.floor(w * 0.14), by0 + Math.floor(h * 0.08), GREEN, 2);
-  g.circle(bx0 + Math.floor(w * 0.05), by0 + Math.floor(h * 0.03), Math.floor(w * 0.022), GREEN);
-  g.circle(bx0 + Math.floor(w * 0.10), by0 + Math.floor(h * 0.05), Math.floor(w * 0.022), GREEN);
-  g.circle(bx0 + Math.floor(w * 0.14), by0 + Math.floor(h * 0.08), Math.floor(w * 0.022), GREEN);
+  // Dove in flight — a classic peace-dove silhouette, sized to fill the
+  // box: a fat horizontal body, a tall swept wing rooted on the body,
+  // a fanned tail, a distinct head with beak and eye, and an olive
+  // branch. A navy drop-shadow keeps the white edges crisp on the pale sky.
+  const F = (fx, fy) => [x + Math.round(w * fx), y + Math.round(h * fy)];
+  const tris = [
+    // raised wing (base sits on the body, tip near the top edge)
+    [F(0.38, 0.48), F(0.47, 0.04), F(0.58, 0.46)],
+    // tail fan, two feathers
+    [F(0.40, 0.46), F(0.22, 0.30), F(0.24, 0.52)],
+    [F(0.40, 0.52), F(0.24, 0.58), F(0.22, 0.74)],
+    // lower wing, swept down
+    [F(0.42, 0.52), F(0.52, 0.92), F(0.58, 0.54)],
+  ];
+  const circs = [
+    [F(0.45, 0.48), Math.floor(w * 0.075)], // body
+    [F(0.55, 0.50), Math.floor(w * 0.06)],  // chest
+    [F(0.63, 0.40), Math.floor(w * 0.042)], // head
+  ];
+  for (const pass of [[4, 4, DARKBLUE], [0, 0, WHITE]]) {
+    const ox = pass[0], oy = pass[1], col = pass[2];
+    for (const t of tris) {
+      g.tri(t[0][0] + ox, t[0][1] + oy, t[1][0] + ox, t[1][1] + oy, t[2][0] + ox, t[2][1] + oy, col);
+    }
+    for (const c of circs) {
+      g.circle(c[0][0] + ox, c[0][1] + oy, c[1], col);
+    }
+  }
+  // Beak, eye, olive branch (drawn once, on top).
+  const beak = [F(0.66, 0.38), F(0.72, 0.41), F(0.66, 0.44)];
+  g.tri(beak[0][0], beak[0][1], beak[1][0], beak[1][1], beak[2][0], beak[2][1], ORANGE);
+  const eye = F(0.64, 0.38);
+  g.circle(eye[0], eye[1], 2, DARKBLUE);
+  const b0 = F(0.70, 0.41), b1 = F(0.86, 0.55);
+  g.line(b0[0], b0[1], b1[0], b1[1], GREEN, 3);
+  for (const lf of [[0.75, 0.45], [0.80, 0.50], [0.85, 0.55]]) {
+    const lp = F(lf[0], lf[1]);
+    g.circle(lp[0], lp[1], Math.floor(w * 0.025), GREEN);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -320,35 +329,49 @@ export function drawRocket(g, x, y, w, h) {
   for (let i = 0; i < stars.length; i++) {
     g.circle(x + Math.floor(w * stars[i][0]), y + Math.floor(h * stars[i][1]), 2, WHITE);
   }
-  // Moon.
-  g.circle(x + Math.floor(w * 0.86), y + Math.floor(h * 0.62), Math.floor(w * 0.06), [220, 222, 228]);
+  // Small ringed planet, top-left — clear of the rocket's path.
+  const px0 = x + Math.floor(w * 0.10);
+  const py0 = y + Math.floor(h * 0.16);
+  g.circle(px0, py0, Math.floor(w * 0.045), LIGHTGREY);
+  g.line(px0 - Math.floor(w * 0.09), py0 + Math.floor(h * 0.04), px0 + Math.floor(w * 0.09), py0 - Math.floor(h * 0.04), GREY, 2);
+  // Moon, bottom-right.
+  g.circle(x + Math.floor(w * 0.88), y + Math.floor(h * 0.68), Math.floor(w * 0.05), [220, 222, 228]);
 
-  // Ringed space station in the top corner.
-  const sx = x + Math.floor(w * 0.78);
-  const sy = y + Math.floor(h * 0.16);
-  g.circle(sx, sy, Math.floor(w * 0.07), LIGHTGREY);
-  g.line(sx - Math.floor(w * 0.13), sy + Math.floor(h * 0.03), sx + Math.floor(w * 0.13), sy - Math.floor(h * 0.03), GREY, 3);
-  g.circle(sx, sy, Math.floor(w * 0.03), STEEL);
-
-  // Rocket: white body, red tip, fins, launching upward (left-centre).
-  const rx = x + Math.floor(w * 0.38);
-  const rw = Math.floor(w * 0.14);
-  const bodyTop = y + Math.floor(h * 0.34);
-  const bodyH = Math.floor(h * 0.32);
-  // Body.
-  g.rect(rx, bodyTop, rw, bodyH, WHITE);
-  // Red tip (triangle).
-  g.tri(rx, bodyTop, rx + rw, bodyTop, rx + Math.floor(rw / 2), bodyTop - Math.floor(h * 0.14), RED);
-  // Window.
-  g.circle(rx + Math.floor(rw / 2), bodyTop + Math.floor(bodyH * 0.28), Math.floor(w * 0.025), LIGHTBLUE);
-  // Fins.
-  g.tri(rx, bodyTop + bodyH - Math.floor(h * 0.06), rx - Math.floor(w * 0.07), bodyTop + bodyH + Math.floor(h * 0.06), rx, bodyTop + bodyH, RED);
-  g.tri(rx + rw, bodyTop + bodyH - Math.floor(h * 0.06), rx + rw + Math.floor(w * 0.07), bodyTop + bodyH + Math.floor(h * 0.06), rx + rw, bodyTop + bodyH, RED);
-  // Flame plume below.
-  const fy = bodyTop + bodyH;
-  g.tri(rx + Math.floor(rw * 0.2), fy, rx + Math.floor(rw * 0.8), fy, rx + Math.floor(rw / 2), fy + Math.floor(h * 0.16), ORANGE);
-  g.tri(rx + Math.floor(rw * 0.35), fy, rx + Math.floor(rw * 0.65), fy, rx + Math.floor(rw / 2), fy + Math.floor(h * 0.10), YELLOW);
+  // Rocket on a steep diagonal climb: tail bottom-centre, nose top-centre.
+  // A thick white body + red nose cone + red fins + orange flame reads
+  // as a rocket even when the cell is thumbnail-small.
+  const tx = x + Math.floor(w * 0.40);
+  const ty = y + Math.floor(h * 0.88);
+  const nx = x + Math.floor(w * 0.60);
+  const ny = y + Math.floor(h * 0.10);
+  const ddx = nx - tx, ddy = ny - ty;
+  const len = Math.sqrt(ddx * ddx + ddy * ddy);
+  const ux = ddx / len, uy = ddy / len; // along the body, tail -> nose
+  const px = -uy, py = ux;              // perpendicular
+  const P = (bx, by, along, perp) => [
+    Math.round(bx + ux * along + px * perp),
+    Math.round(by + uy * along + py * perp),
+  ];
+  // Flame first (behind the tail).
+  const f1 = P(tx, ty, -26, 9), f2 = P(tx, ty, -26, -9);
+  g.tri(tx, ty, f1[0], f1[1], f2[0], f2[1], ORANGE);
+  const f3 = P(tx, ty, -15, 5), f4 = P(tx, ty, -15, -5);
+  g.tri(tx, ty, f3[0], f3[1], f4[0], f4[1], YELLOW);
   // Smoke puffs at the base.
-  g.circle(rx - Math.floor(w * 0.05), fy + Math.floor(h * 0.16), Math.floor(w * 0.045), GREY);
-  g.circle(rx + rw + Math.floor(w * 0.05), fy + Math.floor(h * 0.17), Math.floor(w * 0.05), GREY);
+  const s1 = P(tx, ty, -32, 12), s2 = P(tx, ty, -34, -10);
+  g.circle(s1[0], s1[1], Math.floor(w * 0.04), GREY);
+  g.circle(s2[0], s2[1], Math.floor(w * 0.045), GREY);
+  // Fins near the tail.
+  const a1 = P(tx, ty, -4, 18), a2 = P(tx, ty, -24, 6);
+  g.tri(tx, ty, a1[0], a1[1], a2[0], a2[1], RED);
+  const b1 = P(tx, ty, -4, -18), b2 = P(tx, ty, -24, -6);
+  g.tri(tx, ty, b1[0], b1[1], b2[0], b2[1], RED);
+  // Body: thick white line tail -> nose.
+  g.line(tx, ty, nx, ny, WHITE, 16);
+  // Red nose cone.
+  const c1 = P(nx, ny, -16, 11), c2 = P(nx, ny, -16, -11);
+  g.tri(nx, ny, c1[0], c1[1], c2[0], c2[1], RED);
+  // Window: light-blue porthole mid-body.
+  const mx = Math.round((tx + nx) / 2), my = Math.round((ty + ny) / 2);
+  g.circle(mx, my, Math.floor(w * 0.022), LIGHTBLUE);
 }

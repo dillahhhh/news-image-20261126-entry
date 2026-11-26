@@ -9,7 +9,7 @@
 one image summing up the world's news of Thursday 26 November 2026.
 
 The program draws a 1024x1024 newspaper front page entirely in code
-(Node 22, standard library only — a hand-rolled PNG encoder, a 5x7 bitmap
+(Node 22, standard library only — a hand-rolled PNG encoder, a 5x8 bitmap
 font, and vector illustrations drawn with filled shapes) and writes it to
 `/output/entry.png`. No network, no external assets, deterministic: two runs
 produce byte-identical output.
