@@ -98,44 +98,47 @@ export function drawRefinery(g, x, y, w, h) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Oil tanker on fire at sea, night/dusk.
+// 2. Oil tanker on fire at sea, night/dusk. REDRAWN for v3: the v2 hull was
+// a thin line that read as a smear at 300px. Now the hull is tall and long,
+// the superstructure is big, and the flames are the largest shapes in the
+// box, so the cell reads as "burning tanker" even thumbnail-small.
 // ---------------------------------------------------------------------------
 export function drawTanker(g, x, y, w, h) {
   // Deep blue dusk sky, top half.
-  g.rect(x, y, w, Math.floor(h * 0.55), DARKBLUE);
+  g.rect(x, y, w, Math.floor(h * 0.50), DARKBLUE);
   // Dark blue sea, bottom half.
-  g.rect(x, y + Math.floor(h * 0.55), w, h - Math.floor(h * 0.55), [18, 48, 92]);
+  g.rect(x, y + Math.floor(h * 0.50), w, h - Math.floor(h * 0.50), [18, 48, 92]);
   // Lighter wave lines.
-  g.line(x + Math.floor(w * 0.05), y + Math.floor(h * 0.68), x + Math.floor(w * 0.45), y + Math.floor(h * 0.68), LIGHTBLUE, 2);
-  g.line(x + Math.floor(w * 0.55), y + Math.floor(h * 0.78), x + Math.floor(w * 0.95), y + Math.floor(h * 0.78), LIGHTBLUE, 2);
-  g.line(x + Math.floor(w * 0.15), y + Math.floor(h * 0.88), x + Math.floor(w * 0.60), y + Math.floor(h * 0.88), SKYBLUE, 2);
+  g.line(x + Math.floor(w * 0.05), y + Math.floor(h * 0.82), x + Math.floor(w * 0.45), y + Math.floor(h * 0.82), LIGHTBLUE, 3);
+  g.line(x + Math.floor(w * 0.55), y + Math.floor(h * 0.92), x + Math.floor(w * 0.95), y + Math.floor(h * 0.92), LIGHTBLUE, 3);
 
-  // Dark hull: long rectangle with raked bow.
-  const hullY = y + Math.floor(h * 0.52);
-  const hullH = Math.floor(h * 0.16);
-  g.rect(x + Math.floor(w * 0.06), hullY, Math.floor(w * 0.78), hullH, [24, 24, 30]);
+  // Big flames + grey smoke from the mid-ship engine room (drawn BEFORE the
+  // hull so the fire rises out of the deck, not behind the ship).
+  const fx = x + Math.floor(w * 0.58);
+  const hullY = y + Math.floor(h * 0.48);
+  g.circle(fx, hullY - Math.floor(h * 0.10), Math.floor(w * 0.055), GREY);
+  g.circle(fx + Math.floor(w * 0.07), hullY - Math.floor(h * 0.24), Math.floor(w * 0.07), GREY);
+  g.circle(fx, hullY - Math.floor(h * 0.02), Math.floor(w * 0.065), ORANGE);
+  g.circle(fx + Math.floor(w * 0.05), hullY + Math.floor(h * 0.02), Math.floor(w * 0.05), YELLOW);
+  g.circle(fx - Math.floor(w * 0.04), hullY + Math.floor(h * 0.02), Math.floor(w * 0.04), ORANGE);
+
+  // Tall dark hull: long rectangle with raked bow.
+  const hullH = Math.floor(h * 0.30);
+  g.rect(x + Math.floor(w * 0.04), hullY, Math.floor(w * 0.80), hullH, [24, 24, 30]);
   g.tri(
     x + Math.floor(w * 0.84), hullY,
-    x + Math.floor(w * 0.97), hullY + Math.floor(hullH / 2),
+    x + Math.floor(w * 0.98), hullY + Math.floor(hullH / 2),
     x + Math.floor(w * 0.84), hullY + hullH,
     [24, 24, 30]
   );
-  // Red waterline stripe.
-  g.rect(x + Math.floor(w * 0.06), hullY + hullH - 3, Math.floor(w * 0.80), 3, RED);
+  // Red waterline stripe, thick enough to see at thumbnail size.
+  g.rect(x + Math.floor(w * 0.04), hullY + hullH - 4, Math.floor(w * 0.82), 4, RED);
 
   // Superstructure block at the stern (left), white with red top.
-  g.rect(x + Math.floor(w * 0.08), hullY - Math.floor(h * 0.20), Math.floor(w * 0.14), Math.floor(h * 0.20), WHITE);
-  g.rect(x + Math.floor(w * 0.08), hullY - Math.floor(h * 0.20), Math.floor(w * 0.14), Math.floor(h * 0.05), RED);
-  // Two funnels behind the superstructure.
-  g.rect(x + Math.floor(w * 0.25), hullY - Math.floor(h * 0.14), Math.floor(w * 0.06), Math.floor(h * 0.14), DARK);
-  g.rect(x + Math.floor(w * 0.34), hullY - Math.floor(h * 0.11), Math.floor(w * 0.06), Math.floor(h * 0.11), GREY);
-
-  // Flames + grey smoke from the mid-ship engine room.
-  const fx = x + Math.floor(w * 0.55);
-  g.circle(fx, hullY - Math.floor(h * 0.04), Math.floor(w * 0.05), ORANGE);
-  g.circle(fx + Math.floor(w * 0.06), hullY - Math.floor(h * 0.02), Math.floor(w * 0.035), YELLOW);
-  g.circle(fx, hullY - Math.floor(h * 0.18), Math.floor(w * 0.05), GREY);
-  g.circle(fx + Math.floor(w * 0.05), hullY - Math.floor(h * 0.26), Math.floor(w * 0.065), GREY);
+  g.rect(x + Math.floor(w * 0.06), hullY - Math.floor(h * 0.26), Math.floor(w * 0.16), Math.floor(h * 0.26), WHITE);
+  g.rect(x + Math.floor(w * 0.06), hullY - Math.floor(h * 0.26), Math.floor(w * 0.16), Math.floor(h * 0.06), RED);
+  // One tall funnel behind the superstructure.
+  g.rect(x + Math.floor(w * 0.26), hullY - Math.floor(h * 0.18), Math.floor(w * 0.07), Math.floor(h * 0.18), DARK);
 }
 
 // ---------------------------------------------------------------------------
@@ -374,4 +377,106 @@ export function drawRocket(g, x, y, w, h) {
   // Window: light-blue porthole mid-body.
   const mx = Math.round((tx + nx) / 2), my = Math.round((ty + ny) / 2);
   g.circle(mx, my, Math.floor(w * 0.022), LIGHTBLUE);
+}
+
+// ---------------------------------------------------------------------------
+// 7. (v3) Container ship + tariff badge — US tariffs on 14 partners.
+// A stack of bright containers on a dark hull reads as trade at any size;
+// the red "%" badge (two dots + diagonal bar, drawn as shapes) says tariff.
+// ---------------------------------------------------------------------------
+export function drawTariffs(g, x, y, w, h) {
+  // Pale sky, blue sea.
+  g.rect(x, y, w, Math.floor(h * 0.55), [168, 196, 220]);
+  g.rect(x, y + Math.floor(h * 0.55), w, h - Math.floor(h * 0.55), [36, 68, 120]);
+  g.line(x + Math.floor(w * 0.05), y + Math.floor(h * 0.78), x + Math.floor(w * 0.50), y + Math.floor(h * 0.78), LIGHTBLUE, 3);
+  g.line(x + Math.floor(w * 0.55), y + Math.floor(h * 0.88), x + Math.floor(w * 0.95), y + Math.floor(h * 0.88), LIGHTBLUE, 3);
+
+  // Hull: dark, low, long.
+  const hullY = y + Math.floor(h * 0.58);
+  const hullH = Math.floor(h * 0.22);
+  g.rect(x + Math.floor(w * 0.04), hullY, Math.floor(w * 0.66), hullH, [24, 24, 30]);
+  g.tri(
+    x + Math.floor(w * 0.70), hullY,
+    x + Math.floor(w * 0.82), hullY + Math.floor(hullH / 2),
+    x + Math.floor(w * 0.70), hullY + hullH,
+    [24, 24, 30]
+  );
+  g.rect(x + Math.floor(w * 0.04), hullY + hullH - 3, Math.floor(w * 0.70), 3, RED);
+
+  // Container stack: two rows of bright boxes on the deck.
+  const conts = [
+    [0.06, 0.40, 0.13, RED], [0.20, 0.40, 0.13, YELLOW], [0.34, 0.40, 0.13, [36, 68, 120]],
+    [0.48, 0.40, 0.13, GREEN], [0.13, 0.22, 0.13, [36, 68, 120]], [0.27, 0.22, 0.13, RED],
+    [0.41, 0.22, 0.13, YELLOW],
+  ];
+  for (let i = 0; i < conts.length; i++) {
+    g.rect(
+      x + Math.floor(w * conts[i][0]),
+      hullY - Math.floor(h * conts[i][1]) - Math.floor(h * 0.16),
+      Math.floor(w * conts[i][2]),
+      Math.floor(h * 0.16),
+      conts[i][3]
+    );
+  }
+
+  // Red "%" badge, top-right: circle + two white dots + diagonal bar.
+  // Sized big and bold so the % survives a 300px thumbnail.
+  const bx = x + Math.floor(w * 0.84), by = y + Math.floor(h * 0.26);
+  const br = Math.floor(w * 0.135);
+  g.circle(bx, by, br, RED);
+  g.circle(bx - Math.floor(br * 0.38), by - Math.floor(br * 0.38), Math.floor(br * 0.30), WHITE);
+  g.circle(bx + Math.floor(br * 0.38), by + Math.floor(br * 0.38), Math.floor(br * 0.30), WHITE);
+  g.line(bx - Math.floor(br * 0.48), by + Math.floor(br * 0.48), bx + Math.floor(br * 0.48), by - Math.floor(br * 0.48), WHITE, 5);
+}
+
+// ---------------------------------------------------------------------------
+// 8. (v3) Satellites over Earth — FCC clears SpaceX "Starmind", 1 million
+// orbital data-center satellites. Big blue Earth arc at the bottom, three
+// satellites (white body + blue panel wings) on a dotted orbit arc.
+// ---------------------------------------------------------------------------
+export function drawSatellites(g, x, y, w, h) {
+  // Starry black-blue space.
+  g.rect(x, y, w, h, [8, 14, 38]);
+  const stars = [
+    [0.06, 0.08], [0.20, 0.05], [0.36, 0.12], [0.52, 0.06],
+    [0.68, 0.14], [0.84, 0.07], [0.94, 0.18], [0.12, 0.30],
+    [0.44, 0.28], [0.90, 0.42], [0.26, 0.52], [0.72, 0.55],
+  ];
+  for (let i = 0; i < stars.length; i++) {
+    g.circle(x + Math.floor(w * stars[i][0]), y + Math.floor(h * stars[i][1]), 2, WHITE);
+  }
+
+  // Earth: big blue disc rising from the bottom-left corner, with a lighter
+  // arc highlight and a green landmass blob.
+  const ex = x + Math.floor(w * 0.18), ey = y + h + Math.floor(h * 0.28);
+  g.circle(ex, ey, Math.floor(w * 0.34), [36, 68, 120]);
+  g.circle(ex - Math.floor(w * 0.06), ey - Math.floor(h * 0.10), Math.floor(w * 0.30), [56, 110, 180]);
+  g.circle(ex + Math.floor(w * 0.10), ey - Math.floor(h * 0.02), Math.floor(w * 0.10), GREEN);
+  g.circle(ex - Math.floor(w * 0.14), ey - Math.floor(h * 0.16), Math.floor(w * 0.07), GREEN);
+
+  // Dotted orbit arc sweeping across the sky.
+  const ocx = x + Math.floor(w * 0.50), ocy = y + Math.floor(h * 1.05);
+  const oa = Math.floor(w * 0.52), ob = Math.floor(h * 0.78);
+  for (let deg = 200; deg <= 340; deg += 9) {
+    const t = (deg * Math.PI) / 180;
+    const dx = ocx + Math.round(oa * Math.cos(t));
+    const dy = ocy + Math.round(ob * Math.sin(t));
+    if (dx >= x && dx < x + w && dy >= y && dy < y + h) g.circle(dx, dy, 2, LIGHTGREY);
+  }
+
+  // Three satellites on the arc: white body + blue panel wings.
+  const sats = [
+    [0.22, 0.30, 1], [0.55, 0.14, -1], [0.82, 0.34, 1],
+  ];
+  for (let i = 0; i < sats.length; i++) {
+    const sx = x + Math.floor(w * sats[i][0]);
+    const sy = y + Math.floor(h * sats[i][1]);
+    const tilt = sats[i][2];
+    // Solar panels (blue wings).
+    g.rect(sx - 16, sy - 3 + tilt * 2, 12, 7, LIGHTBLUE);
+    g.rect(sx + 4, sy - 3 - tilt * 2, 12, 7, LIGHTBLUE);
+    // Body.
+    g.rect(sx - 5, sy - 5, 10, 10, WHITE);
+    g.circle(sx, sy, 2, ORANGE);
+  }
 }

@@ -17,10 +17,12 @@ produce byte-identical output.
 Lead story: Houthi drones and the Ras Tanura refinery in Saudi Arabia, with
 both claims shown (the Houthis say they hit it; Riyadh says its defences
 downed four drones) and satellite smoke as corroboration. Also covered:
-tankers hitting mines in the Strait of Hormuz, the Gaza strike that killed
-a senior Hamas security chief, a drone hitting the PIF tower in Riyadh,
-India marking the 26/11 anniversary and Constitution Day, and Pakistan's
-first astronaut bound for Tiangong. Brent crude $93.60, up 2.4%.
+three tankers hitting mines in the Strait of Hormuz, the Gaza strike that
+killed a senior Hamas security chief (10 dead on Wednesday), the US
+proposing new tariffs on 14 trading partners, India marking the 26/11
+anniversary and Constitution Day, and the FCC clearing SpaceX's "Starmind"
+network of 1 million orbital data-center satellites. Brent crude $94.61,
+up 3.5% (Wednesday's settled close).
 
 ## Run
 
@@ -31,7 +33,7 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ## Files
 
 - `main.ts` — the program: raster, PNG encoder, font, page layout.
-- `art.ts` — the six drawn illustrations (refinery, tanker, Gaza dove,
-  Riyadh skyline, Gateway of India, rocket).
+- `art.ts` — the drawn illustrations (refinery, tanker, Gaza dove,
+  Gateway of India, container ship + tariff badge, satellites over Earth).
 - `.makefun/owner.json` — the owner's wallet claim file.
 - `LICENSE` — MIT.

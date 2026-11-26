@@ -3,6 +3,12 @@
 // pure code (Node 22, standard library only) and writes /output/entry.png.
 // No network, no external assets, deterministic: two runs are byte-identical.
 //
+// v3 (26 Nov afternoon): full-day news. Brent corrected to the Wed settled
+// close ($94.61, +3.5%); Hormuz now 3 tankers; Gaza toll updated (10 dead
+// Wed); two new stories — US tariffs on 14 partners, FCC clears SpaceX
+// "Starmind" 1M orbital data-center satellites. Riyadh + Pakistan space cut
+// for breadth. Tanker redrawn bold so it reads at 300px.
+//
 // Layout: masthead with the date, a Brent crude stats strip, a lead story
 // (Ras Tanura) with a large illustration, then five more stories in a grid
 // plus a date-check box, and a sources footer.
@@ -10,7 +16,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { drawRefinery, drawTanker, drawGaza, drawSkyline, drawIndia, drawRocket } from './art.ts';
+import { drawRefinery, drawTanker, drawGaza, drawIndia, drawTariffs, drawSatellites } from './art.ts';
 
 const W = 1024;
 const H = 1024;
@@ -257,10 +263,10 @@ function drawPage() {
   drawText(g, (W - textWidth('THURSDAY 26 NOVEMBER 2026', 5)) / 2, 64, 'THURSDAY 26 NOVEMBER 2026', 5, WHITE);
   g.rect(0, 146, W, 4, GOLD);
 
-  // ---- Stats strip: Brent --------------------------------------------------
+  // ---- Stats strip: Brent (Wed 25 Nov settled close, Reuters) -------------
   g.rect(0, 150, W, 46, GOLD);
-  const statLeft = 'BRENT CRUDE $93.60  ';
-  const statRight = '  +2.4% - GULF ATTACKS LIFT OIL';
+  const statLeft = 'BRENT CRUDE $94.61  ';
+  const statRight = '  +3.5% - GULF ATTACKS LIFT OIL';
   const statW = textWidth(statLeft, 3) + 26 + textWidth(statRight, 3);
   let sx = (W - statW) / 2;
   sx = drawText(g, sx, 162, statLeft, 3, NAVY);
@@ -301,11 +307,11 @@ function drawPage() {
   // and facts at scale 3 in INK — both must read at a true 300px thumbnail.
   const cellW = 328, cellH = 216, gap = 8, gx0 = 12, gy0 = 528;
   const stories = [
-    { draw: drawTanker, head: ['TANKERS HIT', 'MINES'], fact: '2 TANKERS HIT BY MINES, IRAN SAYS', tag: 'IRNA' },
-    { draw: drawGaza, head: ['GAZA STRIKE', 'KILLS'], fact: 'ABUELOUF KILLED WITH HIS FAMILY.', tag: 'REUTERS' },
-    { draw: drawSkyline, head: ['DRONE HITS', 'RIYADH'], fact: 'PIF TOWER HIT; HODEIDAH HIT BACK.', tag: 'MARITIME EXEC.' },
+    { draw: drawTanker, head: ['TANKERS HIT', 'MINES'], fact: '3 TANKERS HIT BY MINES, IRAN SAYS', tag: 'IRNA' },
+    { draw: drawTariffs, head: ['TARIFFS HIT', '14 PARTNERS'], fact: 'CHINA, EU HIT; FUTURES DOWN 2%.', tag: 'USTR' },
+    { draw: drawGaza, head: ['GAZA STRIKE', 'KILLS'], fact: 'ABUELOUF KILLED; 10 DEAD ON WED.', tag: 'ANADOLU' },
     { draw: drawIndia, head: ['INDIA MARKS', '26/11'], fact: '18 YEARS SINCE MUMBAI ATTACKS.', tag: 'INDIA' },
-    { draw: drawRocket, head: ['SPACE FIRST', 'FOR PAKISTAN'], fact: 'ALI FLIES ON SHENZHOU-24.', tag: 'SPACE' },
+    { draw: drawSatellites, head: ['1 MILLION', 'SATELLITES'], fact: 'FCC OKS SPACEX DATA CENTERS.', tag: 'FCC' },
   ];
 
   function storyCell(cx, cy, st) {
@@ -361,8 +367,8 @@ function drawPage() {
 
   // ---- Footer: sources ------------------------------------------------------
   g.rect(0, 980, W, 3, GOLD);
-  drawText(g, (W - textWidth('SOURCES: REUTERS, IRNA, XINHUA, MARITIME EXECUTIVE', 3)) / 2, 992,
-    'SOURCES: REUTERS, IRNA, XINHUA, MARITIME EXECUTIVE', 3, GREY);
+  drawText(g, (W - textWidth('SOURCES: REUTERS, IRNA, ANADOLU, USTR, FCC', 3)) / 2, 992,
+    'SOURCES: REUTERS, IRNA, ANADOLU, USTR, FCC', 3, GREY);
 
   return g;
 }
