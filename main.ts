@@ -3,6 +3,30 @@
 // pure code (Node 22, standard library only) and writes /output/entry.png.
 // No network, no external assets, deterministic: two runs are byte-identical.
 //
+// v12 (28 Nov ~03:30 WIB): FACT FIXES ONLY, from the v11 fact-check
+// (36/37 confirmed). Three changes, nothing else touched:
+//  1. ALSO #19 "NAIROBI: EBOLA SITE HALTED" -> "NAIROBI: COURT HALTS
+//     EBOLA SITE" — the old line was wrong (no Ebola site closed in
+//     Nairobi; Kenya's outbreak ended, last patient discharged 11 Nov).
+//     The replacement is the real 26 Nov story (Reuters): a Kenyan High
+//     Court judge (Justice Patricia Nyaundi) ruled the government
+//     breached the constitution in allowing the US-backed Ebola
+//     quarantine facility at Laikipia Air Base and ordered further work
+//     stopped until conditions (incl. disclosing the US agreement) are
+//     met. Wording says the COURT halted the SITE — not that an outbreak
+//     site closed, not that the outbreak ended, and the facility is in
+//     Laikipia, the court in Nairobi. Still an Africa story, so counts
+//     are unchanged: 37 stories, AFRICA tab 4, "24 MORE STORIES" 24.
+//  2. DATE CHECK "ALL 37 FIRST REPORTED 26 NOV 2026" -> "ALL 37 STORIES
+//     OF 26 NOV 2026" — the old claim was false for >=5 items (first
+//     reported 24 Nov, 5 Nov, Nov 2025, Aug 2026, in force 19 Nov).
+//     The new line is true for all 37 (all are stories of this 26 Nov
+//     edition). Other DATE CHECK lines kept.
+//  3. Card #10 sum "3RD HIKE IN ROW" -> "3RD HIKE THIS YEAR" (BoK
+//     +25bp to 3.25% Thu — third hike this year, with an Oct pause).
+//     Measured 134px in the actual sum font (SANS 13) vs 180px card
+//     width — fits. DO NOT submit before bos approves the render.
+//
 // v11 (28 Nov ~03:10 WIB): GEMINI REDESIGN, the one change. Bos looked at
 // the v10 render on his screen and said the writing is messy, the people
 // are messy, "gaenak di liat" — then ordered: get Gemini to redesign it
@@ -415,7 +439,7 @@ const SMALL = [
   { n: 7, draw: drawEbola, kick: 'DR CONGO', head: ['EBOLA PASSES', '12,021 CASES'], sum: ['5,904 DEAD'], src: 'REUTERS', status: 'OFFICIAL', region: 'AFRICA' },
   { n: 8, draw: drawGizaTruck, kick: 'GIZA', head: ['TANKER FIRE', 'KILLS 31'], sum: ['DRIVER HELD'], src: 'AP', status: 'OFFICIAL', region: 'AFRICA' },
   { n: 9, draw: drawBangkok, kick: 'BANGKOK', head: ['REFINERY BLAST', 'INJURES NINE'], sum: ['3 CRITICAL'], src: 'AP', status: 'CONFIRMED', region: 'SE ASIA' },
-  { n: 10, draw: drawKorea, kick: 'SEOUL', head: ['KOREA HIKES', 'RATE TO 3.25%'], sum: ['3RD HIKE IN ROW'], src: 'YONHAP', status: 'OFFICIAL', region: 'E ASIA' },
+  { n: 10, draw: drawKorea, kick: 'SEOUL', head: ['KOREA HIKES', 'RATE TO 3.25%'], sum: ['3RD HIKE THIS YEAR'], src: 'YONHAP', status: 'OFFICIAL', region: 'E ASIA' },
   { n: 11, draw: drawSatellites, kick: 'WASHINGTON', head: ['FCC CLEARS 1M', 'SATELLITES'], sum: ['STARMIND OK'], src: 'FCC', status: 'OFFICIAL', region: 'N AMERICA' },
   { n: 12, draw: drawRefinery, kick: 'RAS TANURA', head: ['DRONES HIT', 'RAS TANURA'], sum: ['SMOKE 600 SQ KM'], src: 'REUTERS', status: 'CLAIM', region: 'MID EAST' },
   { n: 13, draw: drawIndia, kick: 'MUMBAI', head: ['INDIA MARKS 18', 'SINCE 26/11'], sum: ['TRIBUTES PAID'], src: 'INDIA', status: 'OFFICIAL', region: 'S ASIA' },
@@ -428,7 +452,7 @@ const ALSO = [
   ['16 ODESA: GRAIN SHIPS HIT', 'EUROPE'],
   ['17 PYONGYANG: MORE NUKES', 'E ASIA'],
   ['18 HONG KONG: 168 REMEMBERED', 'E ASIA'],
-  ['19 NAIROBI: EBOLA SITE HALTED', 'AFRICA'],
+  ['19 NAIROBI: COURT HALTS EBOLA SITE', 'AFRICA'],
   ['20 BISSAU: VOTE TO 2028', 'AFRICA'],
   ['21 DHAKA: 400 FACTORIES SHUT', 'S ASIA'],
   ['22 KATHMANDU: 4,000 DEAD', 'S ASIA'],
@@ -671,7 +695,7 @@ function drawPage() {
   g.rect(12 + 620 - 2, 924, 2, 78, NAVY);
   g.rect(12, 924 + 78 - 2, 620, 2, NAVY);
   drawFont(g, 24, 942, SANS[17], 'DATE CHECK', NAVY);
-  drawFont(g, 24, 961, SANS[16], 'ALL 37 FIRST REPORTED 26 NOV 2026', NAVY);
+  drawFont(g, 24, 961, SANS[16], 'ALL 37 STORIES OF 26 NOV 2026', NAVY);
   drawFont(g, 24, 979, SANS[16], 'IN SOME TIME ZONE. WED UTC = THU ASIA.', NAVY);
   drawFont(g, 24, 997, SANS[16], 'LEFT OUT: ASTRONAUT, Q3 GDP (25 NOV)', NAVY);
 
