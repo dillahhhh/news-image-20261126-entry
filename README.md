@@ -24,6 +24,22 @@ anniversary and Constitution Day, and the FCC clearing SpaceX's "Starmind"
 network of 1 million orbital data-center satellites. Brent crude $94.61,
 up 3.5% (Wednesday's settled close).
 
+## v4 (27 Nov): structural rebuild, 37 stories
+
+v2/v3 had only 6 stories — too thin against the leaders (41–48 stories).
+v4 rebuilds the page on the leaders' winning structure (masthead date,
+ticker, stats strip, region tabs, UTC timeline, 13 drawn scenes, dotted
+world map with numbered pins, numbered ALSO list, DATE CHECK, HOW SURE
+legend) but keeps OUR lead — Ras Tanura, not the Thanksgiving storm —
+and our own identity: the 5x8 pixel font and the cream + navy + red +
+gold paper. 37 stories across 9 regions: 3 big illustrated stories
+(Ras Tanura, Kuwait drone attack, US tariffs on 14 partners), 10 small
+illustrated stories (Hormuz, EU summit, Gaza, Ebola, Giza, Bangkok,
+Korea, Starmind, Macy's storm, 26/11), and 24 more in the ALSO list.
+New illustrations: Kuwait air-defence site, EU star circle, Ebola
+clinic, Giza fuel tanker, Bank of Korea, Thanksgiving storm, Bangkok
+refinery blast.
+
 ## Run
 
 ```sh
@@ -34,6 +50,8 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
 - `main.ts` — the program: raster, PNG encoder, font, page layout.
 - `art.ts` — the drawn illustrations (refinery, tanker, Gaza dove,
-  Gateway of India, container ship + tariff badge, satellites over Earth).
+  Gateway of India, container ship + tariff badge, satellites over Earth,
+  Kuwait site, EU stars, Ebola clinic, Giza tanker, Korea bank,
+  Thanksgiving storm, Bangkok blast).
 - `.makefun/owner.json` — the owner's wallet claim file.
 - `LICENSE` — MIT.

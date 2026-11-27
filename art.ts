@@ -480,3 +480,259 @@ export function drawSatellites(g, x, y, w, h) {
     g.circle(sx, sy, 2, ORANGE);
   }
 }
+
+// ---------------------------------------------------------------------------
+// 9. (v4) Kuwait air-defence site at night — drone attack.
+// Dark desert night, radar dish + missile launcher, drone silhouette
+// top-right, orange explosion over the site, grey smoke.
+// ---------------------------------------------------------------------------
+export function drawKuwait(g, x, y, w, h) {
+  // Night sky, deep blue-black.
+  g.rect(x, y, w, Math.floor(h * 0.62), [12, 18, 40]);
+  // Stars.
+  g.circle(x + Math.floor(w * 0.10), y + Math.floor(h * 0.12), 2, WHITE);
+  g.circle(x + Math.floor(w * 0.30), y + Math.floor(h * 0.06), 2, WHITE);
+  g.circle(x + Math.floor(w * 0.86), y + Math.floor(h * 0.30), 2, WHITE);
+  // Desert ground.
+  g.rect(x, y + Math.floor(h * 0.62), w, h - Math.floor(h * 0.62), [92, 74, 52]);
+  const baseY = y + Math.floor(h * 0.62);
+
+  // Radar dish, left: pole + tilted dish (circle + line).
+  const rx = x + Math.floor(w * 0.20);
+  g.rect(rx - 2, baseY - Math.floor(h * 0.30), 4, Math.floor(h * 0.30), DARK);
+  g.circle(rx, baseY - Math.floor(h * 0.34), Math.floor(w * 0.09), LIGHTGREY);
+  g.line(rx - Math.floor(w * 0.07), baseY - Math.floor(h * 0.40), rx + Math.floor(w * 0.07), baseY - Math.floor(h * 0.28), GREY, 3);
+
+  // Missile launcher truck, centre: bed + angled missile.
+  const lx = x + Math.floor(w * 0.44);
+  g.rect(lx, baseY - Math.floor(h * 0.10), Math.floor(w * 0.26), Math.floor(h * 0.10), DARK);
+  g.circle(lx + Math.floor(w * 0.05), baseY - 3, 4, BLACK);
+  g.circle(lx + Math.floor(w * 0.21), baseY - 3, 4, BLACK);
+  g.line(lx + Math.floor(w * 0.04), baseY - Math.floor(h * 0.10), lx + Math.floor(w * 0.20), baseY - Math.floor(h * 0.42), STEELLIGHT, 6);
+  g.tri(lx + Math.floor(w * 0.20), baseY - Math.floor(h * 0.42), lx + Math.floor(w * 0.24), baseY - Math.floor(h * 0.36), lx + Math.floor(w * 0.16), baseY - Math.floor(h * 0.36), RED);
+
+  // Explosion burst over the launcher: orange + yellow core.
+  const ex = lx + Math.floor(w * 0.13);
+  const ey = baseY - Math.floor(h * 0.34);
+  g.circle(ex, ey, Math.floor(w * 0.10), ORANGE);
+  g.circle(ex + Math.floor(w * 0.04), ey - Math.floor(h * 0.05), Math.floor(w * 0.06), YELLOW);
+  g.circle(ex - Math.floor(w * 0.05), ey + Math.floor(h * 0.03), Math.floor(w * 0.05), RED);
+  // Smoke above the blast.
+  g.circle(ex + Math.floor(w * 0.08), ey - Math.floor(h * 0.22), Math.floor(w * 0.07), GREY);
+  g.circle(ex + Math.floor(w * 0.14), ey - Math.floor(h * 0.32), Math.floor(w * 0.08), DARK);
+
+  // Attacking drone, top-right: dark cross silhouette with red eye.
+  const dx = x + Math.floor(w * 0.82);
+  const dy = y + Math.floor(h * 0.16);
+  g.line(dx - Math.floor(w * 0.06), dy, dx + Math.floor(w * 0.06), dy, BLACK, 3);
+  g.line(dx, dy - Math.floor(h * 0.05), dx, dy + Math.floor(h * 0.05), BLACK, 3);
+  g.circle(dx, dy, 3, RED);
+}
+
+// ---------------------------------------------------------------------------
+// 10. (v4) EU summit — circle of gold stars on EU blue, one star dimmed.
+// The dimmed star + the dark table line say "no deal" without words.
+// ---------------------------------------------------------------------------
+export function drawEU(g, x, y, w, h) {
+  g.rect(x, y, w, h, [0, 44, 110]);
+  // Subtle lighter arc behind the stars.
+  g.circle(x + Math.floor(w * 0.50), y + Math.floor(h * 0.52), Math.floor(w * 0.34), [16, 66, 140]);
+  // Circle of 12 gold stars; the bottom one is dimmed (grey).
+  const cx = x + Math.floor(w * 0.50);
+  const cy = y + Math.floor(h * 0.46);
+  const rad = Math.floor(w * 0.26);
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2 - Math.PI / 2;
+    const sx = cx + Math.round(rad * Math.cos(a));
+    const sy = cy + Math.round(rad * Math.sin(a) * 0.9);
+    const col = i === 6 ? GREY : YELLOW;
+    g.circle(sx, sy, Math.max(3, Math.floor(w * 0.028)), col);
+  }
+  // Summit table: dark line across the bottom third + two flags.
+  g.rect(x, y + Math.floor(h * 0.82), w, Math.floor(h * 0.04), [10, 20, 50]);
+  g.rect(x + Math.floor(w * 0.16), y + Math.floor(h * 0.68), Math.floor(w * 0.03), Math.floor(h * 0.14), [220, 220, 220]);
+  g.rect(x + Math.floor(w * 0.81), y + Math.floor(h * 0.68), Math.floor(w * 0.03), Math.floor(h * 0.14), [220, 220, 220]);
+}
+
+// ---------------------------------------------------------------------------
+// 11. (v4) Ebola clinic — white building with a big red cross, green tent,
+// red dots (the virus) kept small and abstract. Tasteful, no patients.
+// ---------------------------------------------------------------------------
+export function drawEbola(g, x, y, w, h) {
+  // Pale sky, green ground.
+  g.rect(x, y, w, Math.floor(h * 0.68), [196, 214, 196]);
+  g.rect(x, y + Math.floor(h * 0.68), w, h - Math.floor(h * 0.68), [90, 140, 80]);
+  const baseY = y + Math.floor(h * 0.68);
+
+  // Clinic building, left-centre: white block + red cross sign.
+  const bx = x + Math.floor(w * 0.10);
+  const bw = Math.floor(w * 0.44);
+  const bh = Math.floor(h * 0.42);
+  g.rect(bx, baseY - bh, bw, bh, WHITE);
+  g.rect(bx, baseY - bh - Math.floor(h * 0.05), bw, Math.floor(h * 0.05), RED);
+  // Red cross on the wall.
+  const cx = bx + Math.floor(bw / 2);
+  const cy = baseY - Math.floor(bh * 0.55);
+  g.rect(cx - 3, cy - Math.floor(h * 0.09), 6, Math.floor(h * 0.18), RED);
+  g.rect(cx - Math.floor(w * 0.05), cy - 3, Math.floor(w * 0.10), 6, RED);
+  // Door + window.
+  g.rect(bx + Math.floor(bw * 0.12), baseY - Math.floor(h * 0.14), Math.floor(w * 0.07), Math.floor(h * 0.14), DARKBLUE);
+  g.rect(bx + Math.floor(bw * 0.62), baseY - Math.floor(h * 0.26), Math.floor(w * 0.10), Math.floor(h * 0.10), LIGHTBLUE);
+
+  // Green medical tent, right.
+  const tx = x + Math.floor(w * 0.62);
+  g.tri(tx, baseY - Math.floor(h * 0.30), tx + Math.floor(w * 0.30), baseY - Math.floor(h * 0.30), tx + Math.floor(w * 0.15), baseY, [52, 110, 70]);
+  g.rect(tx + Math.floor(w * 0.11), baseY - Math.floor(h * 0.12), Math.floor(w * 0.08), Math.floor(h * 0.12), DARK);
+
+  // Small red virus dots drifting in the sky (abstract, few).
+  const dots = [[0.72, 0.14], [0.86, 0.24], [0.58, 0.10], [0.94, 0.44]];
+  for (let i = 0; i < dots.length; i++) {
+    g.circle(x + Math.floor(w * dots[i][0]), y + Math.floor(h * dots[i][1]), 3, RED);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 12. (v4) Giza fuel tanker on fire — road, tanker truck with a long
+// cylinder tank, big flames and black smoke. The truck is the whole box.
+// ---------------------------------------------------------------------------
+export function drawGizaTruck(g, x, y, w, h) {
+  // Dusty orange-grey sky.
+  g.rect(x, y, w, Math.floor(h * 0.55), [196, 158, 118]);
+  g.rect(x, y + Math.floor(h * 0.55), w, h - Math.floor(h * 0.55), [214, 178, 138]);
+  // Road band.
+  const roadY = y + Math.floor(h * 0.68);
+  g.rect(x, roadY, w, h - Math.floor(h * 0.68), [52, 52, 56]);
+  g.line(x + Math.floor(w * 0.04), roadY + Math.floor(h * 0.16), x + Math.floor(w * 0.96), roadY + Math.floor(h * 0.16), [220, 200, 90], 3);
+
+  // Flames + smoke rising from the middle of the tank (drawn first so the
+  // tank sits in front of the fire's base).
+  const fx = x + Math.floor(w * 0.55);
+  g.circle(fx, roadY - Math.floor(h * 0.10), Math.floor(w * 0.06), GREY);
+  g.circle(fx + Math.floor(w * 0.08), roadY - Math.floor(h * 0.26), Math.floor(w * 0.075), DARK);
+  g.circle(fx + Math.floor(w * 0.02), roadY - Math.floor(h * 0.02), Math.floor(w * 0.07), ORANGE);
+  g.circle(fx + Math.floor(w * 0.07), roadY - Math.floor(h * 0.06), Math.floor(w * 0.05), YELLOW);
+  g.circle(fx - Math.floor(w * 0.05), roadY - Math.floor(h * 0.04), Math.floor(w * 0.045), ORANGE);
+
+  // Tanker truck: long silver cylinder tank + red cab, big and low.
+  const tankY = roadY - Math.floor(h * 0.30);
+  const tankH = Math.floor(h * 0.26);
+  g.rect(x + Math.floor(w * 0.06), tankY, Math.floor(w * 0.58), tankH, LIGHTGREY);
+  g.circle(x + Math.floor(w * 0.06), tankY + Math.floor(tankH / 2), Math.floor(tankH / 2), LIGHTGREY);
+  g.circle(x + Math.floor(w * 0.64), tankY + Math.floor(tankH / 2), Math.floor(tankH / 2), GREY);
+  // Cab, right.
+  g.rect(x + Math.floor(w * 0.68), tankY + Math.floor(h * 0.04), Math.floor(w * 0.20), tankH - Math.floor(h * 0.04), RED);
+  g.rect(x + Math.floor(w * 0.74), tankY + Math.floor(h * 0.07), Math.floor(w * 0.08), Math.floor(h * 0.08), LIGHTBLUE);
+  // Wheels.
+  for (const wx of [0.14, 0.30, 0.48, 0.76]) {
+    g.circle(x + Math.floor(w * wx), roadY + 2, Math.floor(w * 0.045), BLACK);
+    g.circle(x + Math.floor(w * wx), roadY + 2, 2, GREY);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 13. (v4) Bank of Korea — grey bank with columns and pediment, big red
+// up-arrow on the right, gold coins at the base. Reads as "rate hike".
+// ---------------------------------------------------------------------------
+export function drawKorea(g, x, y, w, h) {
+  // Pale blue sky.
+  g.rect(x, y, w, h, [178, 205, 226]);
+  // Ground.
+  g.rect(x, y + Math.floor(h * 0.86), w, h - Math.floor(h * 0.86), [90, 96, 104]);
+  const baseY = y + Math.floor(h * 0.86);
+
+  // Bank building, left two-thirds: body + pediment + columns.
+  const bx = x + Math.floor(w * 0.06);
+  const bw = Math.floor(w * 0.52);
+  g.rect(bx, baseY - Math.floor(h * 0.52), bw, Math.floor(h * 0.52), [210, 208, 200]);
+  g.tri(bx, baseY - Math.floor(h * 0.52), bx + bw, baseY - Math.floor(h * 0.52), bx + Math.floor(bw / 2), baseY - Math.floor(h * 0.68), [180, 178, 170]);
+  for (let i = 0; i < 4; i++) {
+    const cx = bx + Math.floor(bw * (0.14 + i * 0.24));
+    g.rect(cx, baseY - Math.floor(h * 0.48), Math.floor(w * 0.035), Math.floor(h * 0.48), [120, 118, 112]);
+  }
+  // Steps.
+  g.rect(bx - Math.floor(w * 0.02), baseY - Math.floor(h * 0.05), bw + Math.floor(w * 0.04), Math.floor(h * 0.05), [150, 148, 142]);
+
+  // Big red up-arrow, right side.
+  const ax = x + Math.floor(w * 0.78);
+  const ayTop = y + Math.floor(h * 0.16);
+  const ayBot = y + Math.floor(h * 0.72);
+  g.tri(ax - Math.floor(w * 0.10), ayTop + Math.floor(h * 0.14), ax + Math.floor(w * 0.10), ayTop + Math.floor(h * 0.14), ax, ayTop, RED);
+  g.rect(ax - Math.floor(w * 0.035), ayTop + Math.floor(h * 0.14), Math.floor(w * 0.07), ayBot - (ayTop + Math.floor(h * 0.14)), RED);
+
+  // Gold coins at the base of the arrow.
+  g.circle(ax - Math.floor(w * 0.06), ayBot + Math.floor(h * 0.06), Math.floor(w * 0.04), YELLOW);
+  g.circle(ax + Math.floor(w * 0.05), ayBot + Math.floor(h * 0.05), Math.floor(w * 0.035), [232, 182, 76]);
+}
+
+// ---------------------------------------------------------------------------
+// 14. (v4) Thanksgiving storm — dark clouds, rain, lightning over dark
+// houses. One lit window keeps it from reading as pure black.
+// ---------------------------------------------------------------------------
+export function drawStorm(g, x, y, w, h) {
+  // Storm sky: dark grey-blue.
+  g.rect(x, y, w, Math.floor(h * 0.58), [52, 60, 78]);
+  // Cloud blobs, darker.
+  const clouds = [[0.18, 0.16, 0.14], [0.42, 0.10, 0.17], [0.68, 0.18, 0.15], [0.88, 0.10, 0.11], [0.30, 0.30, 0.12], [0.58, 0.32, 0.13]];
+  for (let i = 0; i < clouds.length; i++) {
+    g.circle(x + Math.floor(w * clouds[i][0]), y + Math.floor(h * clouds[i][1]), Math.floor(w * clouds[i][2]), [34, 40, 56]);
+  }
+  // Rain: diagonal light-blue lines.
+  for (let i = 0; i < 7; i++) {
+    const rx = x + Math.floor(w * (0.08 + i * 0.13));
+    g.line(rx, y + Math.floor(h * 0.42), rx + Math.floor(w * 0.03), y + Math.floor(h * 0.56), LIGHTBLUE, 2);
+  }
+  // Lightning bolt: yellow zigzag (two triangles + line).
+  const bx = x + Math.floor(w * 0.62);
+  g.line(bx, y + Math.floor(h * 0.30), bx - Math.floor(w * 0.05), y + Math.floor(h * 0.44), YELLOW, 4);
+  g.line(bx - Math.floor(w * 0.05), y + Math.floor(h * 0.44), bx + Math.floor(w * 0.03), y + Math.floor(h * 0.44), YELLOW, 4);
+  g.line(bx + Math.floor(w * 0.03), y + Math.floor(h * 0.44), bx - Math.floor(w * 0.02), y + Math.floor(h * 0.58), YELLOW, 4);
+
+  // Dark houses along the bottom.
+  const baseY = y + h;
+  const houses = [[0.02, 0.30], [0.20, 0.38], [0.40, 0.28], [0.60, 0.36], [0.80, 0.30]];
+  for (let i = 0; i < houses.length; i++) {
+    const hx = x + Math.floor(w * houses[i][0]);
+    const hw = Math.floor(w * 0.16);
+    const hh = Math.floor(h * houses[i][1]);
+    g.rect(hx, baseY - hh, hw, hh, [22, 24, 34]);
+    g.tri(hx - 2, baseY - hh, hx + hw + 2, baseY - hh, hx + Math.floor(hw / 2), baseY - hh - Math.floor(h * 0.08), [16, 18, 26]);
+  }
+  // One lit window (yellow) — the only light in the street.
+  g.rect(x + Math.floor(w * 0.45), baseY - Math.floor(h * 0.18), Math.floor(w * 0.05), Math.floor(h * 0.09), YELLOW);
+  // Leaning tree, right.
+  g.line(x + Math.floor(w * 0.92), baseY, x + Math.floor(w * 0.86), baseY - Math.floor(h * 0.30), DARK, 4);
+  g.circle(x + Math.floor(w * 0.85), baseY - Math.floor(h * 0.34), Math.floor(w * 0.05), [30, 60, 40]);
+}
+
+// ---------------------------------------------------------------------------
+// 15. (v4) Bangkok refinery blast — low factory blocks + chimney, one huge
+// orange explosion cloud and black smoke. Different composition from the
+// lead refinery: horizontal plant, explosion dead centre.
+// ---------------------------------------------------------------------------
+export function drawBangkok(g, x, y, w, h) {
+  // Pale hazy sky.
+  g.rect(x, y, w, h, [206, 196, 172]);
+  const baseY = y + Math.floor(h * 0.84);
+  g.rect(x, baseY, w, h - Math.floor(h * 0.84), [70, 66, 60]);
+
+  // Factory blocks along the bottom.
+  g.rect(x + Math.floor(w * 0.04), baseY - Math.floor(h * 0.22), Math.floor(w * 0.22), Math.floor(h * 0.22), STEEL);
+  g.rect(x + Math.floor(w * 0.72), baseY - Math.floor(h * 0.18), Math.floor(w * 0.24), Math.floor(h * 0.18), GREY);
+  // Chimney, right.
+  g.rect(x + Math.floor(w * 0.78), baseY - Math.floor(h * 0.52), Math.floor(w * 0.05), Math.floor(h * 0.52), DARK);
+  g.rect(x + Math.floor(w * 0.76), baseY - Math.floor(h * 0.56), Math.floor(w * 0.09), Math.floor(h * 0.04), DARK);
+
+  // Huge explosion cloud, centre: orange mass + yellow core + red rim.
+  const ex = x + Math.floor(w * 0.48);
+  const ey = baseY - Math.floor(h * 0.42);
+  g.circle(ex - Math.floor(w * 0.10), ey + Math.floor(h * 0.06), Math.floor(w * 0.09), ORANGE);
+  g.circle(ex + Math.floor(w * 0.10), ey + Math.floor(h * 0.06), Math.floor(w * 0.09), ORANGE);
+  g.circle(ex, ey - Math.floor(h * 0.06), Math.floor(w * 0.11), ORANGE);
+  g.circle(ex, ey, Math.floor(w * 0.07), YELLOW);
+  g.circle(ex - Math.floor(w * 0.04), ey + Math.floor(h * 0.10), Math.floor(w * 0.05), RED);
+  g.circle(ex + Math.floor(w * 0.05), ey + Math.floor(h * 0.10), Math.floor(w * 0.045), RED);
+  // Black smoke above.
+  g.circle(ex - Math.floor(w * 0.06), ey - Math.floor(h * 0.24), Math.floor(w * 0.07), DARK);
+  g.circle(ex + Math.floor(w * 0.07), ey - Math.floor(h * 0.30), Math.floor(w * 0.08), BLACK);
+  g.circle(ex + Math.floor(w * 0.14), ey - Math.floor(h * 0.18), Math.floor(w * 0.05), GREY);
+}

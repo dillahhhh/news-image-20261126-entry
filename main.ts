@@ -252,123 +252,383 @@ function wrap(s, maxW, scale) {
 }
 
 // ---------------------------------------------------------------------------
-// Page composition.
 // ---------------------------------------------------------------------------
+// Page composition — v4 (27 Nov): structural rebuild modelled on the
+// leaders (rank 1 "Hopeful Palette" 0.991711, rank 2, rank 3), but with OUR
+// lead (Ras Tanura, not the Thanksgiving storm) and our own identity
+// (5x8 pixel font, cream + navy + red + gold paper).
+//
+// 37 stories, 9 regions, 13 drawn scenes + dotted world map + UTC
+// timeline + stats strip + region tabs + DATE CHECK + HOW SURE + sources.
+// ---------------------------------------------------------------------------
+import { drawKuwait, drawEU, drawEbola, drawGizaTruck, drawKorea, drawStorm, drawBangkok } from './art.ts';
+
+const GREEN = [34, 120, 60];
+const MIDBLUE = [36, 68, 120];
+const PURPLE = [120, 60, 120];
+const TEAL = [0, 128, 128];
+const ORANGEBROWN = [200, 90, 40];
+const LIGHTBLUE = [90, 140, 180];
+
+// Region colours (tabs, map pins, ALSO-list numbers).
+const REGION_COLORS = {
+  'MID EAST': RED,
+  'N AMERICA': NAVY,
+  'EUROPE': MIDBLUE,
+  'AFRICA': GREEN,
+  'S ASIA': GOLD_DARK,
+  'E ASIA': PURPLE,
+  'SE ASIA': TEAL,
+  'LATIN AM': ORANGEBROWN,
+  'OCEANIA': LIGHTBLUE,
+};
+
+// Status colours.
+const STATUS_COLORS = {
+  'OFFICIAL': GREEN,
+  'CONFIRMED': NAVY,
+  'REPORTED': GOLD_DARK,
+  'CLAIM': RED,
+};
+
+// Dotted world map: land cells as [c0, c1] column ranges per row.
+// 60 cols (lon -170..+170), 26 rows (lat ~77..-52). Cell = 5px.
+const MAP_ROWS = [
+  [[1, 5], [9, 16], [19, 25], [33, 33], [42, 59]],
+  [[1, 7], [9, 17], [20, 26], [40, 59]],
+  [[2, 8], [9, 19], [27, 27], [31, 35], [37, 59]],
+  [[6, 9], [9, 21], [31, 34], [35, 59]],
+  [[7, 21], [29, 30], [31, 34], [36, 58]],
+  [[8, 21], [29, 36], [38, 50], [51, 55]],
+  [[8, 18], [28, 35], [37, 41], [46, 54], [55, 56]],
+  [[8, 18], [28, 35], [35, 38], [40, 42], [46, 53], [54, 56]],
+  [[9, 18], [28, 36], [37, 41], [42, 46], [47, 51], [54, 54]],
+  [[9, 15], [14, 18], [28, 35], [38, 41], [42, 46], [48, 51]],
+  [[10, 14], [28, 36], [38, 40], [43, 45], [48, 52]],
+  [[11, 15], [28, 32], [34, 38], [48, 52]],
+  [[13, 16], [29, 38], [49, 53]],
+  [[17, 19], [30, 38], [50, 56]],
+  [[17, 21], [31, 38], [51, 56]],
+  [[17, 22], [32, 38], [52, 57]],
+  [[18, 23], [32, 38], [53, 56]],
+  [[18, 24], [32, 38], [38, 39], [50, 55]],
+  [[19, 24], [32, 38], [38, 38], [49, 56]],
+  [[19, 24], [32, 37], [38, 38], [49, 56]],
+  [[19, 24], [32, 37], [49, 56]],
+  [[20, 24], [33, 36], [50, 55], [56, 57]],
+  [[20, 23], [33, 35], [50, 54], [56, 56]],
+  [[20, 22], [56, 56]],
+  [[20, 22]],
+  [[20, 21]],
+];
+
+// Map pins: [story number, col, row, region key].
+const MAP_PINS = [
+  [1, 42, 13, 'MID EAST'],
+  [2, 38, 6, 'MID EAST'],
+  [3, 14, 9, 'N AMERICA'],
+  [4, 45, 9, 'MID EAST'],
+  [5, 31, 5, 'EUROPE'],
+  [6, 33, 9, 'MID EAST'],
+  [7, 34, 15, 'AFRICA'],
+  [8, 32, 12, 'AFRICA'],
+  [9, 50, 13, 'SE ASIA'],
+  [10, 52, 8, 'E ASIA'],
+  [11, 19, 9, 'N AMERICA'],
+  [12, 17, 6, 'N AMERICA'],
+  [13, 46, 13, 'S ASIA'],
+];
+
+// The 13 pictured stories: [n, draw, kicker, headline lines, summary lines,
+// source, status, region key]. Big cells use headline scale 3 (lead: 4).
+const BIG = [
+  { n: 1, draw: drawRefinery, kick: 'LEAD STORY - RAS TANURA, SAUDI ARABIA',
+    head: ['HOUTHI DRONES HIT', 'RAS TANURA REFINERY'],
+    sum: ['HOUTHIS SAY THEY HIT IT; RIYADH SAYS', '4 DRONES DOWNED. SMOKE OVER 600 SQ KM.'],
+    src: 'REUTERS', status: 'CLAIM', region: 'MID EAST', lead: true },
+  { n: 2, draw: drawKuwait, kick: 'KUWAIT - MID EAST',
+    head: ['DRONES KILL', '2 ITALIANS'],
+    sum: ['ITALY BLAMES IRAN;', 'TEHRAN DENIES IT'],
+    src: 'REUTERS', status: 'CONFIRMED', region: 'MID EAST', lead: false },
+  { n: 3, draw: drawTariffs, kick: 'WASHINGTON - TRADE',
+    head: ['TARIFFS ON', '14 PARTNERS'],
+    sum: ['UP TO 20% PROPOSED', 'CHINA, EU OBJECT'],
+    src: 'USTR', status: 'OFFICIAL', region: 'N AMERICA', lead: false },
+];
+
+const SMALL = [
+  { n: 4, draw: drawTanker, kick: 'HORMUZ', head: ['3 TANKERS HIT', 'MINES IN HORMUZ'], sum: ['IRAN SAYS'], src: 'IRNA', status: 'CLAIM', region: 'MID EAST' },
+  { n: 5, draw: drawEU, kick: 'BRUSSELS', head: ['EU SUMMIT ENDS', 'WITH NO DEAL'], sum: ['DE COS GETS ECB'], src: 'REUTERS', status: 'OFFICIAL', region: 'EUROPE' },
+  { n: 6, draw: drawGaza, kick: 'GAZA', head: ['GAZA STRIKE', 'KILLS TOP HAMAS'], sum: ['ABUELOUF KILLED'], src: 'REUTERS', status: 'OFFICIAL', region: 'MID EAST' },
+  { n: 7, draw: drawEbola, kick: 'DR CONGO', head: ['EBOLA PASSES', '12,021 CASES'], sum: ['5,904 DEAD'], src: 'REUTERS', status: 'OFFICIAL', region: 'AFRICA' },
+  { n: 8, draw: drawGizaTruck, kick: 'GIZA', head: ['TANKER FIRE', 'KILLS 31'], sum: ['DRIVER HELD'], src: 'AP', status: 'OFFICIAL', region: 'AFRICA' },
+  { n: 9, draw: drawBangkok, kick: 'BANGKOK', head: ['REFINERY BLAST', 'INJURES NINE'], sum: ['3 CRITICAL'], src: 'AP', status: 'CONFIRMED', region: 'SE ASIA' },
+  { n: 10, draw: drawKorea, kick: 'SEOUL', head: ['KOREA HIKES', 'RATE TO 3.25%'], sum: ['3RD HIKE IN ROW'], src: 'YONHAP', status: 'OFFICIAL', region: 'E ASIA' },
+  { n: 11, draw: drawSatellites, kick: 'WASHINGTON', head: ['FCC CLEARS 1M', 'SATELLITES'], sum: ['STARMIND OK'], src: 'FCC', status: 'OFFICIAL', region: 'N AMERICA' },
+  { n: 12, draw: drawStorm, kick: 'NEW YORK', head: ['STORM GROUNDS', "MACY'S PARADE"], sum: ['900,000 DARK'], src: 'AP', status: 'CONFIRMED', region: 'N AMERICA' },
+  { n: 13, draw: drawIndia, kick: 'MUMBAI', head: ['INDIA MARKS 18', 'SINCE 26/11'], sum: ['TRIBUTES PAID'], src: 'INDIA', status: 'OFFICIAL', region: 'S ASIA' },
+];
+
+// ALSO list (24 more stories, numbered 14-37): [text, region key].
+const ALSO = [
+  ['14 RIYADH: PIF TOWER HIT', 'MID EAST'],
+  ['15 JAZAN: NEPALI KILLED', 'MID EAST'],
+  ['16 ODESA: GRAIN SHIPS HIT', 'EUROPE'],
+  ['17 PYONGYANG: MORE NUKES', 'E ASIA'],
+  ['18 HONG KONG: 168 REMEMBERED', 'E ASIA'],
+  ['19 NAIROBI: EBOLA SITE HALTED', 'AFRICA'],
+  ['20 BISSAU: VOTE TO 2028', 'AFRICA'],
+  ['21 DHAKA: 400 FACTORIES SHUT', 'S ASIA'],
+  ['22 KATHMANDU: 4,000 DEAD', 'S ASIA'],
+  ['23 BOGOR: MINE FLOOD KILLS 13', 'SE ASIA'],
+  ['24 NVIDIA HALTS AI SERVERS', 'SE ASIA'],
+  ['25 CALIFORNIA: KING TIDES', 'N AMERICA'],
+  ['26 OTTAWA: STUDENT CAPS', 'N AMERICA'],
+  ['27 LONDON: MIGRATION 77,000', 'EUROPE'],
+  ['28 PARIS: DEPARDIEU TRIAL', 'EUROPE'],
+  ['29 STOCKHOLM: CENTRE BACKS PM', 'EUROPE'],
+  ['30 MADRID: DE COS TO RUN ECB', 'EUROPE'],
+  ['31 BUENOS AIRES: RECESSION', 'LATIN AM'],
+  ['32 ARGENTINA: PRINTING HALT', 'LATIN AM'],
+  ['33 MEXICO: SPACEX TALKS', 'LATIN AM'],
+  ['34 SINNER OUT OF AUS OPEN', 'OCEANIA'],
+  ['35 CANBERRA: 2035 TARGET MISS', 'OCEANIA'],
+  ['36 TRUMP: PUTIN, PULL BACK', 'N AMERICA'],
+  ['37 KATZ: DISPLACE 1M GAZANS', 'MID EAST'],
+];
+
+// Region tabs: [label, count, region key].
+const TABS = [
+  ['MIDEAST 7', 'MID EAST'],
+  ['N AMER 6', 'N AMERICA'],
+  ['EUROPE 6', 'EUROPE'],
+  ['AFRICA 4', 'AFRICA'],
+  ['S ASIA 3', 'S ASIA'],
+  ['E ASIA 3', 'E ASIA'],
+  ['SE ASIA 3', 'SE ASIA'],
+  ['LATAM 3', 'LATIN AM'],
+  ['OCEANIA 2', 'OCEANIA'],
+];
+
+// UTC timeline: [time + label, above?].
+const TIMELINE = [
+  ['00:51 KOREA', true],
+  ['05:01 KIM', false],
+  ['07:46 EBOLA', true],
+  ['10:51 ODESA', false],
+  ['13:23 KATZ', true],
+  ['17:16 BISSAU', false],
+  ['23:35 EU', true],
+];
+
 function drawPage() {
   const g = new Raster(W, H, PAPER);
 
+  // ---- Top strip -----------------------------------------------------------
+  g.rect(0, 0, W, 22, NAVY);
+  drawText(g, 12, 3, 'THE WORLD IN ONE DAY', 2, GOLD);
+  const topRight = '37 STORIES - 9 REGIONS - ALL FROM THU 26 NOV 2026';
+  drawText(g, W - 12 - textWidth(topRight, 2), 3, topRight, 2, WHITE);
+
   // ---- Masthead ------------------------------------------------------------
-  g.rect(0, 0, W, 150, NAVY);
-  drawText(g, (W - textWidth('THE WORLD IN ONE DAY', 4)) / 2, 20, 'THE WORLD IN ONE DAY', 4, GOLD);
-  drawText(g, (W - textWidth('THURSDAY 26 NOVEMBER 2026', 5)) / 2, 64, 'THURSDAY 26 NOVEMBER 2026', 5, WHITE);
-  g.rect(0, 146, W, 4, GOLD);
+  drawText(g, (W - textWidth('THURSDAY 26 NOVEMBER 2026', 6)) / 2, 38,
+    'THURSDAY 26 NOVEMBER 2026', 6, INK);
+  g.rect(0, 96, W, 4, GOLD);
 
-  // ---- Stats strip: Brent (Wed 25 Nov settled close, Reuters) -------------
-  g.rect(0, 150, W, 46, GOLD);
-  const statLeft = 'BRENT CRUDE $94.61  ';
-  const statRight = '  +3.5% - GULF ATTACKS LIFT OIL';
-  const statW = textWidth(statLeft, 3) + 26 + textWidth(statRight, 3);
-  let sx = (W - statW) / 2;
-  sx = drawText(g, sx, 162, statLeft, 3, NAVY);
-  g.tri(sx + 3, 182, sx + 13, 182, sx + 8, 166, NAVY); // up-triangle
-  sx = drawText(g, sx + 26, 162, statRight, 3, NAVY);
+  // ---- Ticker --------------------------------------------------------------
+  g.rect(0, 100, W, 22, RED);
+  const tick = 'BRENT $94.61 +3.5% - RAS TANURA HIT - 3 TANKERS MINED - TARIFFS ON 14';
+  drawText(g, (W - textWidth(tick, 2)) / 2, 103, tick, 2, WHITE);
 
-  // ---- Lead story: Ras Tanura ----------------------------------------------
-  g.rect(12, 196, 1000, 320, CARD);
-  g.rect(12, 196, 1000, 320, NAVY); // border via inset trick below
-  g.rect(14, 198, 996, 316, CARD);
-  g.setClip(24, 208, 424, 296);
-  drawRefinery(g, 24, 208, 424, 296);
-  g.clearClip();
-  const lx = 468;
-  drawText(g, lx, 214, 'LEAD STORY', 3, RED);
-  // Source chip, top-right of the lead text block (keeps the bottom free
-  // for the fact lines).
-  g.rect(854, 208, 146, 26, RED);
-  drawText(g, 864, 214, 'REUTERS', 3, WHITE);
-  drawText(g, lx, 246, 'HOUTHI DRONES', 5, INK);
-  drawText(g, lx, 288, 'HIT RAS TANURA', 5, INK);
-  drawText(g, lx, 330, 'REFINERY', 5, INK);
-  const leadFact = [
-    'HOUTHIS SAY THEY HIT',
-    "THE KINGDOM'S LARGEST",
-    'REFINERY; RIYADH SAYS',
-    'DEFENCES DOWNED 4 DRONES.',
-    'SMOKE OVER 600 SQ KM.',
+  // ---- Stats strip (gold) --------------------------------------------------
+  g.rect(0, 122, W, 46, GOLD);
+  const stats = [
+    ['$94.61', 'BRENT CRUDE'],
+    ['3', 'TANKERS MINED'],
+    ['12,021', 'EBOLA CASES'],
+    ['3.25%', 'KOREA NEW RATE'],
+    ['31', 'GIZA DEAD'],
+    ['900,000', 'WITHOUT POWER'],
   ];
-  let fy = 372;
-  for (const line of leadFact) {
-    drawText(g, lx, fy, line, 3, INK);
-    fy += 25;
+  for (let i = 0; i < 6; i++) {
+    const cx0 = 2 + i * 170;
+    drawText(g, cx0 + (170 - textWidth(stats[i][0], 3)) / 2, 125, stats[i][0], 3, NAVY);
+    drawText(g, cx0 + (170 - textWidth(stats[i][1], 2)) / 2, 151, stats[i][1], 2, NAVY);
+    if (i > 0) g.rect(cx0, 128, 2, 34, GOLD_DARK);
   }
 
-  // ---- Grid: 5 stories + date-check box -----------------------------------
-  // Cells are 216 tall so headlines can run at scale 4 (two short lines)
-  // and facts at scale 3 in INK — both must read at a true 300px thumbnail.
-  const cellW = 328, cellH = 216, gap = 8, gx0 = 12, gy0 = 528;
-  const stories = [
-    { draw: drawTanker, head: ['TANKERS HIT', 'MINES'], fact: '3 TANKERS HIT BY MINES, IRAN SAYS', tag: 'IRNA' },
-    { draw: drawTariffs, head: ['TARIFFS HIT', '14 PARTNERS'], fact: 'CHINA, EU HIT; FUTURES DOWN 2%.', tag: 'USTR' },
-    { draw: drawGaza, head: ['GAZA STRIKE', 'KILLS'], fact: 'ABUELOUF KILLED; 10 DEAD ON WED.', tag: 'ANADOLU' },
-    { draw: drawIndia, head: ['INDIA MARKS', '26/11'], fact: '18 YEARS SINCE MUMBAI ATTACKS.', tag: 'INDIA' },
-    { draw: drawSatellites, head: ['1 MILLION', 'SATELLITES'], fact: 'FCC OKS SPACEX DATA CENTERS.', tag: 'FCC' },
-  ];
+  // ---- Region tabs ---------------------------------------------------------
+  let tabW = 0;
+  for (const t of TABS) tabW += textWidth(t[0], 2) + 10 + 3;
+  tabW -= 3;
+  let tx = (W - tabW) / 2;
+  for (const t of TABS) {
+    const w = textWidth(t[0], 2) + 10;
+    g.rect(tx, 168, w, 22, REGION_COLORS[t[1]]);
+    drawText(g, tx + 5, 172, t[0], 2, WHITE);
+    tx += w + 3;
+  }
 
-  function storyCell(cx, cy, st) {
-    g.rect(cx, cy, cellW, cellH, CARD);
-    g.rect(cx, cy, cellW, 2, NAVY);
-    g.rect(cx, cy, 2, cellH, NAVY);
-    g.rect(cx + cellW - 2, cy, 2, cellH, NAVY);
-    g.rect(cx, cy + cellH - 2, cellW, 2, NAVY);
-    const factLines = wrap(st.fact, cellW - 20, 3);
-    const headH = st.head.length * 36;
-    const illoH = cellH - 12 - headH - 4 - factLines.length * 28 - 8;
-    g.setClip(cx + 6, cy + 6, cellW - 12, illoH);
-    st.draw(g, cx + 6, cy + 6, cellW - 12, illoH);
+  // ---- Timeline: THE DAY IN UTC --------------------------------------------
+  g.rect(0, 190, 184, 38, NAVY);
+  drawText(g, 12, 202, 'THE DAY IN UTC', 2, WHITE);
+  const tlX0 = 200, tlX1 = 1012, tlY = 209;
+  g.rect(tlX0, tlY, tlX1 - tlX0, 2, NAVY);
+  const dotXs = [240, 360, 480, 600, 720, 840, 930];
+  for (let i = 0; i < TIMELINE.length; i++) {
+    const dx = dotXs[i];
+    g.circle(dx, tlY + 1, 5, RED);
+    g.circle(dx, tlY + 1, 2, WHITE);
+    const label = TIMELINE[i][0];
+    const lw = textWidth(label, 2);
+    let lx = dx - lw / 2;
+    if (lx < tlX0) lx = tlX0;
+    if (lx + lw > W - 4) lx = W - 4 - lw;
+    drawText(g, lx, TIMELINE[i][1] ? 191 : 212, label, 2, INK);
+  }
+
+  // ---- Helpers for story cells ---------------------------------------------
+  function chip(x, y, label, bg) {
+    const w = textWidth(label, 2) + 10;
+    g.rect(x, y, w, 16, bg);
+    drawText(g, x + 5, y + 1, label, 2, WHITE);
+    return w;
+  }
+  function badge(cx, cy, n, scale) {
+    g.circle(cx, cy, scale === 2 ? 13 : 9, RED);
+    const s = String(n);
+    drawText(g, cx - textWidth(s, scale) / 2, cy - (scale === 2 ? 8 : 4), s, scale, WHITE);
+  }
+
+  // ---- Big 3 ---------------------------------------------------------------
+  const bigY = 228, bigH = 234, bigIlloH = 92;
+  const bigCols = [
+    { x: 12, w: 496 },
+    { x: 516, w: 244 },
+    { x: 768, w: 244 },
+  ];
+  for (let i = 0; i < 3; i++) {
+    const st = BIG[i];
+    const bx = bigCols[i].x, bw = bigCols[i].w;
+    g.rect(bx, bigY, bw, bigH, CARD);
+    g.rect(bx, bigY, bw, 2, NAVY);
+    g.rect(bx, bigY, 2, bigH, NAVY);
+    g.rect(bx + bw - 2, bigY, 2, bigH, NAVY);
+    g.rect(bx, bigY + bigH - 2, bw, 2, NAVY);
+    g.setClip(bx + 2, bigY + 2, bw - 4, bigIlloH);
+    st.draw(g, bx + 2, bigY + 2, bw - 4, bigIlloH);
     g.clearClip();
-    // Source chip over the illustration's top-right corner.
-    const chipW = textWidth(st.tag, 2) + 12;
-    g.rect(cx + cellW - 6 - chipW, cy + 6, chipW, 18, RED);
-    drawText(g, cx + cellW - 6 - chipW + 6, cy + 9, st.tag, 2, WHITE);
-    let hy = cy + 6 + illoH + 6;
+    badge(bx + 18, bigY + 18, st.n, 2);
+    chip(bx + bw - 8 - (textWidth(st.src, 2) + 10), bigY + 8, st.src, RED);
+    chip(bx + bw - 8 - (textWidth(st.status, 2) + 10), bigY + 2 + bigIlloH - 22, st.status, STATUS_COLORS[st.status]);
+    const tx0 = bx + 12;
+    drawText(g, tx0, bigY + bigIlloH + 8, st.kick, 2, RED);
+    const hs = st.lead ? 4 : 3;
+    const lh = st.lead ? 36 : 28;
+    let hy = bigY + bigIlloH + 8 + 20;
     for (const line of st.head) {
-      drawText(g, cx + 10, hy, line, 4, INK);
-      hy += 36;
+      drawText(g, tx0, hy, line, hs, INK);
+      hy += lh;
     }
-    let fy2 = hy + 4;
-    for (const line of factLines) {
-      drawText(g, cx + 10, fy2, line, 3, INK);
-      fy2 += 28;
+    let sy = hy + 4;
+    for (const line of st.sum) {
+      drawText(g, tx0, sy, line, 2, INK);
+      sy += 20;
     }
   }
 
-  for (let i = 0; i < 5; i++) {
-    const col = i % 3, row = (i / 3) | 0;
-    storyCell(gx0 + col * (cellW + gap), gy0 + row * (cellH + 12), stories[i]);
+  // ---- Small 10: two rows of five ------------------------------------------
+  const smY0 = 462, smH = 120, smW = 196, smGap = 8, smIlloH = 44;
+  for (let i = 0; i < 10; i++) {
+    const st = SMALL[i];
+    const col = i % 5, row = (i / 5) | 0;
+    const cx = 12 + col * (smW + smGap);
+    const cy = smY0 + row * (smH + 4);
+    g.rect(cx, cy, smW, smH, CARD);
+    g.rect(cx, cy, smW, 2, NAVY);
+    g.rect(cx, cy, 2, smH, NAVY);
+    g.rect(cx + smW - 2, cy, 2, smH, NAVY);
+    g.rect(cx, cy + smH - 2, smW, 2, NAVY);
+    g.setClip(cx + 2, cy + 2, smW - 4, smIlloH);
+    st.draw(g, cx + 2, cy + 2, smW - 4, smIlloH);
+    g.clearClip();
+    badge(cx + 14, cy + 14, st.n, 1);
+    chip(cx + smW - 6 - (textWidth(st.src, 2) + 10), cy + 6, st.src, RED);
+    chip(cx + smW - 6 - (textWidth(st.status, 2) + 10), cy + 2 + smIlloH - 20, st.status, STATUS_COLORS[st.status]);
+    drawText(g, cx + 8, cy + smIlloH + 6, st.kick, 2, RED);
+    let hy = cy + smIlloH + 6 + 18;
+    for (const line of st.head) {
+      drawText(g, cx + 8, hy, line, 2, INK);
+      hy += 16;
+    }
+    drawText(g, cx + 8, hy + 2, st.sum[0], 2, GREY);
   }
 
-  // ---- Date-check box (6th cell) -------------------------------------------
-  const dcX = gx0 + 2 * (cellW + gap), dcY = gy0 + cellH + 12;
-  g.rect(dcX, dcY, cellW, cellH, GOLD);
-  g.rect(dcX, dcY, cellW, 2, NAVY);
-  g.rect(dcX, dcY, 2, cellH, NAVY);
-  g.rect(dcX + cellW - 2, dcY, 2, cellH, NAVY);
-  g.rect(dcX, dcY + cellH - 2, cellW, 2, NAVY);
-  drawText(g, dcX + 16, dcY + 16, 'DATE CHECK', 4, NAVY);
-  g.line(dcX + 16, dcY + 66, dcX + 40, dcY + 84, NAVY, 5);
-  g.line(dcX + 40, dcY + 84, dcX + 76, dcY + 54, NAVY, 5);
-  const dcLines = wrap('EVERY STORY FIRST REPORTED 25-26 NOV 2026.', cellW - 32, 3);
-  let dy = dcY + 100;
-  for (const line of dcLines) {
-    drawText(g, dcX + 16, dy, line, 3, NAVY);
-    dy += 28;
-  }
-  drawText(g, dcX + 16, dy + 4, 'WED UTC = THU IN ASIA', 2, NAVY);
+  // ---- Section header: map + ALSO ------------------------------------------
+  drawText(g, 12, 710, 'WHERE IT HAPPENED - PINS ARE PICTURE NUMBERS', 2, RED);
+  const alsoHead = 'ALSO ON 26 NOVEMBER - 24 MORE STORIES';
+  drawText(g, W - 12 - textWidth(alsoHead, 2), 710, alsoHead, 2, RED);
 
-  // ---- Footer: sources ------------------------------------------------------
-  g.rect(0, 980, W, 3, GOLD);
-  drawText(g, (W - textWidth('SOURCES: REUTERS, IRNA, ANADOLU, USTR, FCC', 3)) / 2, 992,
-    'SOURCES: REUTERS, IRNA, ANADOLU, USTR, FCC', 3, GREY);
+  // ---- Dotted world map ----------------------------------------------------
+  const mapX = 12, mapY = 726 + 34, cell = 5;
+  for (let r = 0; r < MAP_ROWS.length; r++) {
+    for (const seg of MAP_ROWS[r]) {
+      for (let c = seg[0]; c <= seg[1]; c++) {
+        g.circle(mapX + c * cell + 2, mapY + r * cell + 2, 2, GREY);
+      }
+    }
+  }
+  for (const pin of MAP_PINS) {
+    const px = mapX + pin[1] * cell + 2;
+    const py = mapY + pin[2] * cell + 2;
+    const s = String(pin[0]);
+    const bw2 = textWidth(s, 1) + 8;
+    g.rect(px - bw2 / 2 - 1, py - 7, bw2 + 2, 14, WHITE);
+    g.rect(px - bw2 / 2, py - 6, bw2, 12, REGION_COLORS[pin[3]]);
+    drawText(g, px - textWidth(s, 1) / 2, py - 4, s, 1, WHITE);
+  }
+  drawText(g, 12, 906, 'PINS COLOURED BY REGION', 2, GREY);
+
+  // ---- ALSO list: two columns ----------------------------------------------
+  const listCols = [[324, 12], [672, 12]];
+  for (let i = 0; i < ALSO.length; i++) {
+    const col = i < 12 ? 0 : 1;
+    const row = i % 12;
+    const lx = listCols[col][0];
+    const ly = 730 + row * 16;
+    const entry = ALSO[i][0];
+    const sp = entry.indexOf(' ');
+    const num = entry.slice(0, sp);
+    const rest = entry.slice(sp);
+    drawText(g, lx, ly, num, 2, REGION_COLORS[ALSO[i][1]]);
+    drawText(g, lx + textWidth(num, 2), ly, rest, 2, INK);
+  }
+
+  // ---- DATE CHECK + HOW SURE -----------------------------------------------
+  g.rect(12, 924, 620, 78, GOLD);
+  g.rect(12, 924, 620, 2, NAVY);
+  g.rect(12, 924, 2, 78, NAVY);
+  g.rect(12 + 620 - 2, 924, 2, 78, NAVY);
+  g.rect(12, 924 + 78 - 2, 620, 2, NAVY);
+  drawText(g, 24, 930, 'DATE CHECK', 2, NAVY);
+  drawText(g, 24, 948, 'ALL 37 FIRST REPORTED 26 NOV 2026', 2, NAVY);
+  drawText(g, 24, 964, 'IN SOME TIME ZONE. WED UTC = THU ASIA.', 2, NAVY);
+  drawText(g, 24, 980, 'LEFT OUT: ASTRONAUT, Q3 GDP (25 NOV)', 2, NAVY);
+
+  g.rect(640, 924, 372, 78, CARD);
+  g.rect(640, 924, 372, 2, NAVY);
+  g.rect(640, 924, 2, 78, NAVY);
+  g.rect(640 + 372 - 2, 924, 2, 78, NAVY);
+  g.rect(640, 924 + 78 - 2, 372, 2, NAVY);
+  drawText(g, 652, 930, 'HOW SURE', 2, NAVY);
+  drawText(g, 652, 948, 'OFFICIAL: AUTHORITY', 2, INK);
+  drawText(g, 652, 964, 'CONFIRMED: 2+ OUTLETS', 2, INK);
+  drawText(g, 652, 980, 'REPORTED: 1 - CLAIM: ONE SIDE', 2, INK);
+
+  // ---- Footer ---------------------------------------------------------------
+  g.rect(0, 1002, W, 2, GOLD);
+  const foot = 'SOURCES: REUTERS, IRNA, BBC, AP, AFP, EURONEWS, YONHAP - DRAWN SCENES, NOT PHOTOS';
+  drawText(g, (W - textWidth(foot, 2)) / 2, 1008, foot, 2, GREY);
 
   return g;
 }
