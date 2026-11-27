@@ -71,30 +71,15 @@ export function drawRefinery(g, x, y, w, h) {
   g.rect(x, baseY - Math.floor(h * 0.05), w, Math.floor(h * 0.02), STEELLIGHT);
   g.rect(x, baseY - Math.floor(h * 0.02), w, Math.floor(h * 0.02), STEEL);
 
+  // Two small grey smoke puffs (the big black blobs read as mush at 300px).
+  g.circle(x + Math.floor(w * 0.72), y + Math.floor(h * 0.24), Math.floor(w * 0.06), GREY);
+  g.circle(x + Math.floor(w * 0.84), y + Math.floor(h * 0.14), Math.floor(w * 0.07), GREY);
+
   // Flame at the base of the tallest tower.
   const fx = x + Math.floor(w * 0.60) + Math.floor(w * 0.028);
   g.circle(fx, baseY - Math.floor(h * 0.03), Math.floor(w * 0.045), ORANGE);
   g.circle(fx, baseY - Math.floor(h * 0.055), Math.floor(w * 0.028), YELLOW);
 
-  // BIG thick black smoke: overlapping circles growing toward top-right.
-  const smoke = [
-    [0.62, 0.46, 0.055, BLACK],
-    [0.68, 0.38, 0.075, BLACK],
-    [0.76, 0.30, 0.095, DARK],
-    [0.84, 0.22, 0.115, BLACK],
-    [0.92, 0.14, 0.13, DARK],
-    [0.97, 0.06, 0.14, BLACK],
-    [0.72, 0.24, 0.06, GREY],
-    [0.88, 0.10, 0.07, GREY],
-  ];
-  for (let i = 0; i < smoke.length; i++) {
-    g.circle(
-      x + Math.floor(w * smoke[i][0]),
-      y + Math.floor(h * smoke[i][1]),
-      Math.floor(w * smoke[i][2]),
-      smoke[i][3]
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -103,25 +88,21 @@ export function drawRefinery(g, x, y, w, h) {
 // the superstructure is big, and the flames are the largest shapes in the
 // box, so the cell reads as "burning tanker" even thumbnail-small.
 // ---------------------------------------------------------------------------
+// 2. (v11) Oil tanker at dusk — sun, hull, flame. The superstructure,
+// funnel and wave lines are gone; the hull + red waterline + one flame
+// are the whole story now.
+// ---------------------------------------------------------------------------
 export function drawTanker(g, x, y, w, h) {
-  // Deep blue dusk sky, top half.
+  // Deep blue dusk sky, top half; dark blue sea, bottom half.
   g.rect(x, y, w, Math.floor(h * 0.50), DARKBLUE);
-  // Dark blue sea, bottom half.
   g.rect(x, y + Math.floor(h * 0.50), w, h - Math.floor(h * 0.50), [18, 48, 92]);
-  // Lighter wave lines.
-  g.line(x + Math.floor(w * 0.05), y + Math.floor(h * 0.82), x + Math.floor(w * 0.45), y + Math.floor(h * 0.82), LIGHTBLUE, 3);
-  g.line(x + Math.floor(w * 0.55), y + Math.floor(h * 0.92), x + Math.floor(w * 0.95), y + Math.floor(h * 0.92), LIGHTBLUE, 3);
-
-  // Big flames + grey smoke from the mid-ship engine room (drawn BEFORE the
-  // hull so the fire rises out of the deck, not behind the ship).
+  // Orange sun, top-left.
+  g.circle(x + Math.floor(w * 0.16), y + Math.floor(h * 0.22), Math.floor(w * 0.09), ORANGE);
+  // Flames from the mid-ship engine room (drawn before the hull).
   const fx = x + Math.floor(w * 0.58);
   const hullY = y + Math.floor(h * 0.48);
-  g.circle(fx, hullY - Math.floor(h * 0.10), Math.floor(w * 0.055), GREY);
-  g.circle(fx + Math.floor(w * 0.07), hullY - Math.floor(h * 0.24), Math.floor(w * 0.07), GREY);
   g.circle(fx, hullY - Math.floor(h * 0.02), Math.floor(w * 0.065), ORANGE);
   g.circle(fx + Math.floor(w * 0.05), hullY + Math.floor(h * 0.02), Math.floor(w * 0.05), YELLOW);
-  g.circle(fx - Math.floor(w * 0.04), hullY + Math.floor(h * 0.02), Math.floor(w * 0.04), ORANGE);
-
   // Tall dark hull: long rectangle with raked bow.
   const hullH = Math.floor(h * 0.30);
   g.rect(x + Math.floor(w * 0.04), hullY, Math.floor(w * 0.80), hullH, [24, 24, 30]);
@@ -133,48 +114,23 @@ export function drawTanker(g, x, y, w, h) {
   );
   // Red waterline stripe, thick enough to see at thumbnail size.
   g.rect(x + Math.floor(w * 0.04), hullY + hullH - 4, Math.floor(w * 0.82), 4, RED);
-
-  // Superstructure block at the stern (left), white with red top.
-  g.rect(x + Math.floor(w * 0.06), hullY - Math.floor(h * 0.26), Math.floor(w * 0.16), Math.floor(h * 0.26), WHITE);
-  g.rect(x + Math.floor(w * 0.06), hullY - Math.floor(h * 0.26), Math.floor(w * 0.16), Math.floor(h * 0.06), RED);
-  // One tall funnel behind the superstructure.
-  g.rect(x + Math.floor(w * 0.26), hullY - Math.floor(h * 0.18), Math.floor(w * 0.07), Math.floor(h * 0.18), DARK);
 }
+
 
 // ---------------------------------------------------------------------------
 // 3. Dove over a ruined city — ceasefire under strain. Tasteful, no gore.
 // ---------------------------------------------------------------------------
+// 3. (v11) Dove over a plain dusty sky — the ruined skyline, leaning slab
+// and rubble are gone. Eight dark buildings behind a white dove turned
+// the cell into noise; the dove alone reads as peace.
+// ---------------------------------------------------------------------------
 export function drawGaza(g, x, y, w, h) {
-  // Dusty orange-grey sky.
+  // Dusty orange-grey sky, plain.
   g.rect(x, y, w, h, [196, 158, 118]);
   g.rect(x, y, w, Math.floor(h * 0.30), [214, 178, 138]);
 
-  // Ruined skyline silhouette: broken dark-grey buildings, uneven heights.
-  const baseY = y + h;
-  const blds = [
-    [0.00, 0.42], [0.13, 0.55], [0.26, 0.34], [0.38, 0.50],
-    [0.50, 0.30], [0.63, 0.58], [0.76, 0.40], [0.88, 0.52],
-  ];
-  for (let i = 0; i < blds.length; i++) {
-    const bx = x + Math.floor(w * blds[i][0]);
-    const bw = Math.floor(w * 0.12);
-    const bh = Math.floor(h * blds[i][1]);
-    g.rect(bx, baseY - bh, bw, bh, DARK);
-  }
-  // One leaning building (triangle slab).
-  g.tri(
-    x + Math.floor(w * 0.44), baseY - Math.floor(h * 0.30),
-    x + Math.floor(w * 0.56), baseY,
-    x + Math.floor(w * 0.48), baseY,
-    GREY
-  );
-  // Rubble line at the base.
-  g.rect(x, baseY - Math.floor(h * 0.06), w, Math.floor(h * 0.06), GREY);
-
-  // Dove in flight — a classic peace-dove silhouette, sized to fill the
-  // box: a fat horizontal body, a tall swept wing rooted on the body,
-  // a fanned tail, a distinct head with beak and eye, and an olive
-  // branch. A navy drop-shadow keeps the white edges crisp on the pale sky.
+  // Dove in flight — big simple white shapes only: a fat body, a tall
+  // swept wing, a fanned tail, a distinct head with beak and eye.
   const F = (fx, fy) => [x + Math.round(w * fx), y + Math.round(h * fy)];
   const tris = [
     // raised wing (base sits on the body, tip near the top edge)
@@ -199,18 +155,13 @@ export function drawGaza(g, x, y, w, h) {
       g.circle(c[0][0] + ox, c[0][1] + oy, c[1], col);
     }
   }
-  // Beak, eye, olive branch (drawn once, on top).
+  // Beak + eye, drawn once, on top.
   const beak = [F(0.66, 0.38), F(0.72, 0.41), F(0.66, 0.44)];
   g.tri(beak[0][0], beak[0][1], beak[1][0], beak[1][1], beak[2][0], beak[2][1], ORANGE);
   const eye = F(0.64, 0.38);
   g.circle(eye[0], eye[1], 2, DARKBLUE);
-  const b0 = F(0.70, 0.41), b1 = F(0.86, 0.55);
-  g.line(b0[0], b0[1], b1[0], b1[1], GREEN, 3);
-  for (const lf of [[0.75, 0.45], [0.80, 0.50], [0.85, 0.55]]) {
-    const lp = F(lf[0], lf[1]);
-    g.circle(lp[0], lp[1], Math.floor(w * 0.025), GREEN);
-  }
 }
+
 
 // ---------------------------------------------------------------------------
 // 4. Riyadh KAFD towers at dusk, one tower hit, drone above.
@@ -275,10 +226,6 @@ export function drawSkyline(g, x, y, w, h) {
 export function drawIndia(g, x, y, w, h) {
   // Deep blue sky.
   g.rect(x, y, w, h, [24, 48, 96]);
-  // Stars.
-  g.circle(x + Math.floor(w * 0.12), y + Math.floor(h * 0.10), 2, WHITE);
-  g.circle(x + Math.floor(w * 0.86), y + Math.floor(h * 0.14), 2, WHITE);
-  g.circle(x + Math.floor(w * 0.70), y + Math.floor(h * 0.06), 2, WHITE);
   // Ground.
   g.rect(x, y + Math.floor(h * 0.86), w, h - Math.floor(h * 0.86), [28, 30, 46]);
 
@@ -311,11 +258,6 @@ export function drawIndia(g, x, y, w, h) {
   // Plinth step.
   g.rect(mx - Math.floor(w * 0.03), baseY - Math.floor(h * 0.04), mw + Math.floor(w * 0.06), Math.floor(h * 0.04), SANDDARK);
 
-  // Lit candle / remembrance flame at the base, centre of the arch.
-  const cx = x + Math.floor(w * 0.50);
-  g.rect(cx - 2, baseY - Math.floor(h * 0.07), 4, Math.floor(h * 0.07), WHITE);
-  g.circle(cx, baseY - Math.floor(h * 0.10), Math.floor(w * 0.025), ORANGE);
-  g.circle(cx, baseY - Math.floor(h * 0.115), Math.floor(w * 0.014), YELLOW);
 }
 
 // ---------------------------------------------------------------------------
@@ -384,50 +326,27 @@ export function drawRocket(g, x, y, w, h) {
 // A stack of bright containers on a dark hull reads as trade at any size;
 // the red "%" badge (two dots + diagonal bar, drawn as shapes) says tariff.
 // ---------------------------------------------------------------------------
+// 3. (v11) Tariffs — a row of bright trade bars over a dark band. The
+// container ship + 7 boxes + % badge were too much small detail; four
+// big blocks + one band say "trade" at any size.
+// ---------------------------------------------------------------------------
 export function drawTariffs(g, x, y, w, h) {
-  // Pale sky, blue sea.
-  g.rect(x, y, w, Math.floor(h * 0.55), [168, 196, 220]);
-  g.rect(x, y + Math.floor(h * 0.55), w, h - Math.floor(h * 0.55), [36, 68, 120]);
-  g.line(x + Math.floor(w * 0.05), y + Math.floor(h * 0.78), x + Math.floor(w * 0.50), y + Math.floor(h * 0.78), LIGHTBLUE, 3);
-  g.line(x + Math.floor(w * 0.55), y + Math.floor(h * 0.88), x + Math.floor(w * 0.95), y + Math.floor(h * 0.88), LIGHTBLUE, 3);
-
-  // Hull: dark, low, long.
-  const hullY = y + Math.floor(h * 0.58);
-  const hullH = Math.floor(h * 0.22);
-  g.rect(x + Math.floor(w * 0.04), hullY, Math.floor(w * 0.66), hullH, [24, 24, 30]);
-  g.tri(
-    x + Math.floor(w * 0.70), hullY,
-    x + Math.floor(w * 0.82), hullY + Math.floor(hullH / 2),
-    x + Math.floor(w * 0.70), hullY + hullH,
-    [24, 24, 30]
-  );
-  g.rect(x + Math.floor(w * 0.04), hullY + hullH - 3, Math.floor(w * 0.70), 3, RED);
-
-  // Container stack: two rows of bright boxes on the deck.
-  const conts = [
-    [0.06, 0.40, 0.13, RED], [0.20, 0.40, 0.13, YELLOW], [0.34, 0.40, 0.13, [36, 68, 120]],
-    [0.48, 0.40, 0.13, GREEN], [0.13, 0.22, 0.13, [36, 68, 120]], [0.27, 0.22, 0.13, RED],
-    [0.41, 0.22, 0.13, YELLOW],
+  // Pale blue sky.
+  g.rect(x, y, w, h, [168, 196, 220]);
+  // Row of bright blocks (trade bars): red, yellow, blue, green.
+  const blocks = [
+    [0.06, 0.30, 0.16, RED], [0.26, 0.18, 0.16, YELLOW],
+    [0.46, 0.36, 0.16, MIDBLUE], [0.66, 0.22, 0.16, GREEN],
   ];
-  for (let i = 0; i < conts.length; i++) {
-    g.rect(
-      x + Math.floor(w * conts[i][0]),
-      hullY - Math.floor(h * conts[i][1]) - Math.floor(h * 0.16),
-      Math.floor(w * conts[i][2]),
-      Math.floor(h * 0.16),
-      conts[i][3]
-    );
+  for (let i = 0; i < blocks.length; i++) {
+    const bh = Math.floor(h * blocks[i][1]);
+    g.rect(x + Math.floor(w * blocks[i][0]), y + Math.floor(h * 0.55) - bh, Math.floor(w * blocks[i][2]), bh, blocks[i][3]);
   }
-
-  // Red "%" badge, top-right: circle + two white dots + diagonal bar.
-  // Sized big and bold so the % survives a 300px thumbnail.
-  const bx = x + Math.floor(w * 0.84), by = y + Math.floor(h * 0.26);
-  const br = Math.floor(w * 0.135);
-  g.circle(bx, by, br, RED);
-  g.circle(bx - Math.floor(br * 0.38), by - Math.floor(br * 0.38), Math.floor(br * 0.30), WHITE);
-  g.circle(bx + Math.floor(br * 0.38), by + Math.floor(br * 0.38), Math.floor(br * 0.30), WHITE);
-  g.line(bx - Math.floor(br * 0.48), by + Math.floor(br * 0.48), bx + Math.floor(br * 0.48), by - Math.floor(br * 0.48), WHITE, 5);
+  // Dark navy band + thin red line at the bottom.
+  g.rect(x, y + Math.floor(h * 0.55), w, h - Math.floor(h * 0.55), DARKBLUE);
+  g.rect(x, y + Math.floor(h * 0.55), w, 4, RED);
 }
+
 
 // ---------------------------------------------------------------------------
 // 8. (v3) Satellites over Earth — FCC clears SpaceX "Starmind", 1 million
@@ -486,52 +405,35 @@ export function drawSatellites(g, x, y, w, h) {
 // Dark desert night, radar dish + missile launcher, drone silhouette
 // top-right, orange explosion over the site, grey smoke.
 // ---------------------------------------------------------------------------
+// 2. (v11) Kuwait — two drones over the desert, nothing else. The radar,
+// launcher, explosion and smoke were five competing shapes; at thumbnail
+// size they collapsed into one dark blob. Two discs + rotor bars read.
+// ---------------------------------------------------------------------------
 export function drawKuwait(g, x, y, w, h) {
-  // Night sky, deep blue-black.
+  // Night sky, deep blue-black; desert ground below.
   g.rect(x, y, w, Math.floor(h * 0.62), [12, 18, 40]);
-  // Stars.
-  g.circle(x + Math.floor(w * 0.10), y + Math.floor(h * 0.12), 2, WHITE);
-  g.circle(x + Math.floor(w * 0.30), y + Math.floor(h * 0.06), 2, WHITE);
-  g.circle(x + Math.floor(w * 0.86), y + Math.floor(h * 0.30), 2, WHITE);
-  // Desert ground.
   g.rect(x, y + Math.floor(h * 0.62), w, h - Math.floor(h * 0.62), [92, 74, 52]);
-  const baseY = y + Math.floor(h * 0.62);
-
-  // Radar dish, left: pole + tilted dish (circle + line).
-  const rx = x + Math.floor(w * 0.20);
-  g.rect(rx - 2, baseY - Math.floor(h * 0.30), 4, Math.floor(h * 0.30), DARK);
-  g.circle(rx, baseY - Math.floor(h * 0.34), Math.floor(w * 0.09), LIGHTGREY);
-  g.line(rx - Math.floor(w * 0.07), baseY - Math.floor(h * 0.40), rx + Math.floor(w * 0.07), baseY - Math.floor(h * 0.28), GREY, 3);
-
-  // Missile launcher truck, centre: bed + angled missile.
-  const lx = x + Math.floor(w * 0.44);
-  g.rect(lx, baseY - Math.floor(h * 0.10), Math.floor(w * 0.26), Math.floor(h * 0.10), DARK);
-  g.circle(lx + Math.floor(w * 0.05), baseY - 3, 4, BLACK);
-  g.circle(lx + Math.floor(w * 0.21), baseY - 3, 4, BLACK);
-  g.line(lx + Math.floor(w * 0.04), baseY - Math.floor(h * 0.10), lx + Math.floor(w * 0.20), baseY - Math.floor(h * 0.42), STEELLIGHT, 6);
-  g.tri(lx + Math.floor(w * 0.20), baseY - Math.floor(h * 0.42), lx + Math.floor(w * 0.24), baseY - Math.floor(h * 0.36), lx + Math.floor(w * 0.16), baseY - Math.floor(h * 0.36), RED);
-
-  // Explosion burst over the launcher: orange + yellow core.
-  const ex = lx + Math.floor(w * 0.13);
-  const ey = baseY - Math.floor(h * 0.34);
-  g.circle(ex, ey, Math.floor(w * 0.10), ORANGE);
-  g.circle(ex + Math.floor(w * 0.04), ey - Math.floor(h * 0.05), Math.floor(w * 0.06), YELLOW);
-  g.circle(ex - Math.floor(w * 0.05), ey + Math.floor(h * 0.03), Math.floor(w * 0.05), RED);
-  // Smoke above the blast.
-  g.circle(ex + Math.floor(w * 0.08), ey - Math.floor(h * 0.22), Math.floor(w * 0.07), GREY);
-  g.circle(ex + Math.floor(w * 0.14), ey - Math.floor(h * 0.32), Math.floor(w * 0.08), DARK);
-
-  // Attacking drone, top-right: dark cross silhouette with red eye.
-  const dx = x + Math.floor(w * 0.82);
-  const dy = y + Math.floor(h * 0.16);
-  g.line(dx - Math.floor(w * 0.06), dy, dx + Math.floor(w * 0.06), dy, BLACK, 3);
-  g.line(dx, dy - Math.floor(h * 0.05), dx, dy + Math.floor(h * 0.05), BLACK, 3);
-  g.circle(dx, dy, 3, RED);
+  // Drone 1, left: grey disc + rotor bar + tail line.
+  const d1x = x + Math.floor(w * 0.28), d1y = y + Math.floor(h * 0.30);
+  g.circle(d1x, d1y, Math.floor(w * 0.11), [150, 150, 155]);
+  g.line(d1x - Math.floor(w * 0.14), d1y - Math.floor(h * 0.10), d1x + Math.floor(w * 0.14), d1y - Math.floor(h * 0.10), [150, 150, 155], 3);
+  g.line(d1x, d1y + Math.floor(h * 0.08), d1x, d1y + Math.floor(h * 0.24), [150, 150, 155], 3);
+  // Drone 2, right: orange disc + grey rotor bar.
+  const d2x = x + Math.floor(w * 0.70), d2y = y + Math.floor(h * 0.26);
+  g.circle(d2x, d2y, Math.floor(w * 0.12), ORANGE);
+  g.circle(d2x - Math.floor(w * 0.04), d2y - Math.floor(w * 0.04), Math.floor(w * 0.04), YELLOW);
+  g.line(d2x - Math.floor(w * 0.15), d2y - Math.floor(h * 0.12), d2x + Math.floor(w * 0.15), d2y - Math.floor(h * 0.12), [150, 150, 155], 3);
+  // One small white dot (distant light).
+  g.circle(x + Math.floor(w * 0.88), y + Math.floor(h * 0.52), 2, WHITE);
 }
+
 
 // ---------------------------------------------------------------------------
 // 10. (v4) EU summit — circle of gold stars on EU blue, one star dimmed.
 // The dimmed star + the dark table line say "no deal" without words.
+// ---------------------------------------------------------------------------
+// 10. (v11) EU summit — circle of gold stars on EU blue, one star dimmed.
+// The table line and flags are gone; the star circle alone says it.
 // ---------------------------------------------------------------------------
 export function drawEU(g, x, y, w, h) {
   g.rect(x, y, w, h, [0, 44, 110]);
@@ -548,15 +450,15 @@ export function drawEU(g, x, y, w, h) {
     const col = i === 6 ? GREY : YELLOW;
     g.circle(sx, sy, Math.max(3, Math.floor(w * 0.028)), col);
   }
-  // Summit table: dark line across the bottom third + two flags.
-  g.rect(x, y + Math.floor(h * 0.82), w, Math.floor(h * 0.04), [10, 20, 50]);
-  g.rect(x + Math.floor(w * 0.16), y + Math.floor(h * 0.68), Math.floor(w * 0.03), Math.floor(h * 0.14), [220, 220, 220]);
-  g.rect(x + Math.floor(w * 0.81), y + Math.floor(h * 0.68), Math.floor(w * 0.03), Math.floor(h * 0.14), [220, 220, 220]);
 }
+
 
 // ---------------------------------------------------------------------------
 // 11. (v4) Ebola clinic — white building with a big red cross, green tent,
 // red dots (the virus) kept small and abstract. Tasteful, no patients.
+// ---------------------------------------------------------------------------
+// 11. (v11) Ebola clinic — white building with a big red cross, green
+// tent. The red virus dots are gone (they read as dirt at 300px).
 // ---------------------------------------------------------------------------
 export function drawEbola(g, x, y, w, h) {
   // Pale sky, green ground.
@@ -579,21 +481,19 @@ export function drawEbola(g, x, y, w, h) {
   g.rect(bx + Math.floor(bw * 0.12), baseY - Math.floor(h * 0.14), Math.floor(w * 0.07), Math.floor(h * 0.14), DARKBLUE);
   g.rect(bx + Math.floor(bw * 0.62), baseY - Math.floor(h * 0.26), Math.floor(w * 0.10), Math.floor(h * 0.10), LIGHTBLUE);
 
-  // Green medical tent, right.
+  // Green medical tent, right — one big triangle + dark door.
   const tx = x + Math.floor(w * 0.62);
   g.tri(tx, baseY - Math.floor(h * 0.30), tx + Math.floor(w * 0.30), baseY - Math.floor(h * 0.30), tx + Math.floor(w * 0.15), baseY, [52, 110, 70]);
   g.rect(tx + Math.floor(w * 0.11), baseY - Math.floor(h * 0.12), Math.floor(w * 0.08), Math.floor(h * 0.12), DARK);
-
-  // Small red virus dots drifting in the sky (abstract, few).
-  const dots = [[0.72, 0.14], [0.86, 0.24], [0.58, 0.10], [0.94, 0.44]];
-  for (let i = 0; i < dots.length; i++) {
-    g.circle(x + Math.floor(w * dots[i][0]), y + Math.floor(h * dots[i][1]), 3, RED);
-  }
 }
+
 
 // ---------------------------------------------------------------------------
 // 12. (v4) Giza fuel tanker on fire — road, tanker truck with a long
 // cylinder tank, big flames and black smoke. The truck is the whole box.
+// ---------------------------------------------------------------------------
+// 12. (v11) Giza fuel tanker on fire — road, tanker truck, flames. The
+// grey smoke puffs are gone; the truck + fire are the whole box.
 // ---------------------------------------------------------------------------
 export function drawGizaTruck(g, x, y, w, h) {
   // Dusty orange-grey sky.
@@ -604,11 +504,8 @@ export function drawGizaTruck(g, x, y, w, h) {
   g.rect(x, roadY, w, h - Math.floor(h * 0.68), [52, 52, 56]);
   g.line(x + Math.floor(w * 0.04), roadY + Math.floor(h * 0.16), x + Math.floor(w * 0.96), roadY + Math.floor(h * 0.16), [220, 200, 90], 3);
 
-  // Flames + smoke rising from the middle of the tank (drawn first so the
-  // tank sits in front of the fire's base).
+  // Flames rising from the middle of the tank.
   const fx = x + Math.floor(w * 0.55);
-  g.circle(fx, roadY - Math.floor(h * 0.10), Math.floor(w * 0.06), GREY);
-  g.circle(fx + Math.floor(w * 0.08), roadY - Math.floor(h * 0.26), Math.floor(w * 0.075), DARK);
   g.circle(fx + Math.floor(w * 0.02), roadY - Math.floor(h * 0.02), Math.floor(w * 0.07), ORANGE);
   g.circle(fx + Math.floor(w * 0.07), roadY - Math.floor(h * 0.06), Math.floor(w * 0.05), YELLOW);
   g.circle(fx - Math.floor(w * 0.05), roadY - Math.floor(h * 0.04), Math.floor(w * 0.045), ORANGE);
@@ -628,6 +525,7 @@ export function drawGizaTruck(g, x, y, w, h) {
     g.circle(x + Math.floor(w * wx), roadY + 2, 2, GREY);
   }
 }
+
 
 // ---------------------------------------------------------------------------
 // 13. (v4) Bank of Korea — grey bank with columns and pediment, big red
@@ -659,9 +557,6 @@ export function drawKorea(g, x, y, w, h) {
   g.tri(ax - Math.floor(w * 0.10), ayTop + Math.floor(h * 0.14), ax + Math.floor(w * 0.10), ayTop + Math.floor(h * 0.14), ax, ayTop, RED);
   g.rect(ax - Math.floor(w * 0.035), ayTop + Math.floor(h * 0.14), Math.floor(w * 0.07), ayBot - (ayTop + Math.floor(h * 0.14)), RED);
 
-  // Gold coins at the base of the arrow.
-  g.circle(ax - Math.floor(w * 0.06), ayBot + Math.floor(h * 0.06), Math.floor(w * 0.04), YELLOW);
-  g.circle(ax + Math.floor(w * 0.05), ayBot + Math.floor(h * 0.05), Math.floor(w * 0.035), [232, 182, 76]);
 }
 
 // ---------------------------------------------------------------------------
@@ -715,6 +610,10 @@ export function drawStorm(g, x, y, w, h) {
 // the old lead (refinery: grey tanks + black smoke blobs) never did.
 // Balloons are the largest shapes in the box, high-contrast against the
 // dark storm sky, with lit windows in the skyline for scale.
+// ---------------------------------------------------------------------------
+// 15. (v11) Bangkok refinery blast — one big explosion cloud + two smoke
+// puffs over a plain ground line. Factory blocks and chimney are gone.
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 export function drawParade(g, x, y, w, h) {
   // Dusk storm sky: flat blue bands, clearly lighter than v9's near-black
@@ -809,13 +708,6 @@ export function drawBangkok(g, x, y, w, h) {
   const baseY = y + Math.floor(h * 0.84);
   g.rect(x, baseY, w, h - Math.floor(h * 0.84), [70, 66, 60]);
 
-  // Factory blocks along the bottom.
-  g.rect(x + Math.floor(w * 0.04), baseY - Math.floor(h * 0.22), Math.floor(w * 0.22), Math.floor(h * 0.22), STEEL);
-  g.rect(x + Math.floor(w * 0.72), baseY - Math.floor(h * 0.18), Math.floor(w * 0.24), Math.floor(h * 0.18), GREY);
-  // Chimney, right.
-  g.rect(x + Math.floor(w * 0.78), baseY - Math.floor(h * 0.52), Math.floor(w * 0.05), Math.floor(h * 0.52), DARK);
-  g.rect(x + Math.floor(w * 0.76), baseY - Math.floor(h * 0.56), Math.floor(w * 0.09), Math.floor(h * 0.04), DARK);
-
   // Huge explosion cloud, centre: orange mass + yellow core + red rim.
   const ex = x + Math.floor(w * 0.48);
   const ey = baseY - Math.floor(h * 0.42);
@@ -828,5 +720,5 @@ export function drawBangkok(g, x, y, w, h) {
   // Black smoke above.
   g.circle(ex - Math.floor(w * 0.06), ey - Math.floor(h * 0.24), Math.floor(w * 0.07), DARK);
   g.circle(ex + Math.floor(w * 0.07), ey - Math.floor(h * 0.30), Math.floor(w * 0.08), BLACK);
-  g.circle(ex + Math.floor(w * 0.14), ey - Math.floor(h * 0.18), Math.floor(w * 0.05), GREY);
 }
+

@@ -3,6 +3,22 @@
 // pure code (Node 22, standard library only) and writes /output/entry.png.
 // No network, no external assets, deterministic: two runs are byte-identical.
 //
+// v11 (28 Nov ~03:10 WIB): GEMINI REDESIGN, the one change. Bos looked at
+// the v10 render on his screen and said the writing is messy, the people
+// are messy, "gaenak di liat" — then ordered: get Gemini to redesign it
+// tidy, copy Gemini exactly in code, send the render to him before submit.
+// So: the 5x8 pixel font is GONE (it turned to mush at 300px and made the
+// whole page look scruffy). Type is now real faces, anti-aliased, blitted
+// from grayscale coverage tables in fonts.ts (Liberation Serif Bold for
+// masthead + headlines, Noto Serif Condensed Bold for small headlines,
+// Liberation Sans Bold for everything else). Scenes are simplified to a
+// few big flat geometric shapes, no fiddly detail, no figures at all —
+// the cluttered bits (window grids, stars, smoke puffs, thin lines) are
+// what read as messy blobs at thumbnail size. Same 37 stories, same
+// facts, same grid, same palette, same map/ALSO/DATE CHECK — only the
+// typography and the scene simplicity change. DO NOT submit before bos
+// approves the render.
+//
 // v9 (28 Nov): LEAD SWAP, the one change. The lead story becomes the
 // Thanksgiving storm / Macy's 100th parade (was Ras Tanura, now small
 // card 12). Evidence: rank 1 (0.991711) AND rank 3 (0.991557) both lead
@@ -32,6 +48,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { drawRefinery, drawTanker, drawGaza, drawIndia, drawTariffs, drawSatellites } from './art.ts';
+import { SERIF, SERIFC, SANS, fontWidth, drawFont } from './fonts.ts';
 
 const W = 1024;
 const H = 1024;
@@ -64,6 +81,23 @@ class Raster {
   }
   setClip(x, y, w, h) { this.clip = [x, y, x + w, y + h]; }
   clearClip() { this.clip = null; }
+  // Blend one pixel of colour c with coverage a (0-255) over the pixel
+  // already there. Used by drawFont for anti-aliased type.
+  blend(x, y, c, a) {
+    x |= 0; y |= 0;
+    if (a <= 0) return;
+    if (x < 0 || y < 0 || x >= this.w || y >= this.h) return;
+    if (this.clip && (x < this.clip[0] || y < this.clip[1] || x >= this.clip[2] || y >= this.clip[3])) return;
+    const o = (y * this.w + x) * 3;
+    if (a >= 255) {
+      this.buf[o] = c[0]; this.buf[o + 1] = c[1]; this.buf[o + 2] = c[2];
+      return;
+    }
+    const inv = 255 - a;
+    this.buf[o] = ((c[0] * a + this.buf[o] * inv + 127) / 255) | 0;
+    this.buf[o + 1] = ((c[1] * a + this.buf[o + 1] * inv + 127) / 255) | 0;
+    this.buf[o + 2] = ((c[2] * a + this.buf[o + 2] * inv + 127) / 255) | 0;
+  }
   px(x, y, c) {
     x |= 0; y |= 0;
     if (x < 0 || y < 0 || x >= this.w || y >= this.h) return;
@@ -360,15 +394,15 @@ const MAP_PINS = [
 // The 13 pictured stories: [n, draw, kicker, headline lines, summary lines,
 // source, status, region key]. Big cells use headline scale 3 (lead: 4).
 const BIG = [
-  { n: 1, draw: drawParade, kick: 'LEAD STORY - NEW YORK, USA',
+  { n: 1, draw: drawParade, kick: 'LEAD STORY • NEW YORK, USA',
     head: ['STORM GROUNDS', "MACY'S PARADE"],
     sum: ['100TH PARADE MOVED TO SAT;', '900,000 WITHOUT POWER.'],
     src: 'AP', status: 'CONFIRMED', region: 'N AMERICA', lead: true },
-  { n: 2, draw: drawKuwait, kick: 'KUWAIT - MID EAST',
+  { n: 2, draw: drawKuwait, kick: 'KUWAIT • MID EAST',
     head: ['DRONES KILL', '2 ITALIANS'],
     sum: ['ITALY BLAMES IRAN;', 'TEHRAN DENIES IT'],
     src: 'REUTERS', status: 'CONFIRMED', region: 'MID EAST', lead: false },
-  { n: 3, draw: drawTariffs, kick: 'WASHINGTON - TRADE',
+  { n: 3, draw: drawTariffs, kick: 'WASHINGTON • TRADE',
     head: ['TARIFFS ON', '14 PARTNERS'],
     sum: ['UP TO 20% PROPOSED', 'CHINA, EU OBJECT'],
     src: 'USTR', status: 'OFFICIAL', region: 'N AMERICA', lead: false },
@@ -444,19 +478,19 @@ function drawPage() {
 
   // ---- Top strip -----------------------------------------------------------
   g.rect(0, 0, W, 22, NAVY);
-  drawText(g, 12, 3, 'THE WORLD IN ONE DAY', 2, GOLD);
-  const topRight = '37 STORIES - 9 REGIONS - ALL FROM THU 26 NOV 2026';
-  drawText(g, W - 12 - textWidth(topRight, 2), 3, topRight, 2, WHITE);
+  drawFont(g, 12, 16, SANS[17], 'THE WORLD IN ONE DAY', GOLD);
+  const topRight = '37 STORIES • 9 REGIONS • ALL FROM THU 26 NOV 2026';
+  drawFont(g, W - 12 - fontWidth(SANS[17], topRight), 16, SANS[17], topRight, WHITE);
 
-  // ---- Masthead ------------------------------------------------------------
-  drawText(g, (W - textWidth('THURSDAY 26 NOVEMBER 2026', 6)) / 2, 38,
-    'THURSDAY 26 NOVEMBER 2026', 6, INK);
+  // ---- Masthead: Liberation Serif Bold 60, ~913px wide --------------------
+  drawFont(g, (W - fontWidth(SERIF[60], 'THURSDAY 26 NOVEMBER 2026')) / 2, 88,
+    SERIF[60], 'THURSDAY 26 NOVEMBER 2026', INK);
   g.rect(0, 96, W, 4, GOLD);
 
   // ---- Ticker --------------------------------------------------------------
   g.rect(0, 100, W, 22, RED);
-  const tick = "MACY'S 100TH PARADE GROUNDED - 900,000 DARK - BRENT $94.61 +3.5% - RAS TANURA HIT";
-  drawText(g, (W - textWidth(tick, 2)) / 2, 103, tick, 2, WHITE);
+  const tick = "MACY'S 100TH PARADE GROUNDED • 900,000 DARK • BRENT $94.61 +3.5% • RAS TANURA HIT";
+  drawFont(g, (W - fontWidth(SANS[20], tick)) / 2, 117, SANS[20], tick, WHITE);
 
   // ---- Stats strip (gold) --------------------------------------------------
   g.rect(0, 122, W, 46, GOLD);
@@ -471,26 +505,26 @@ function drawPage() {
   ];
   for (let i = 0; i < 6; i++) {
     const cx0 = 2 + i * 170;
-    drawText(g, cx0 + (170 - textWidth(stats[i][0], 3)) / 2, 125, stats[i][0], 3, NAVY);
-    drawText(g, cx0 + (170 - textWidth(stats[i][1], 2)) / 2, 151, stats[i][1], 2, NAVY);
+    drawFont(g, cx0 + (170 - fontWidth(SANS[36], stats[i][0])) / 2, 150, SANS[36], stats[i][0], NAVY);
+    drawFont(g, cx0 + (170 - fontWidth(SANS[16], stats[i][1])) / 2, 166, SANS[16], stats[i][1], NAVY);
     if (i > 0) g.rect(cx0, 128, 2, 34, GOLD_DARK);
   }
 
   // ---- Region tabs ---------------------------------------------------------
   let tabW = 0;
-  for (const t of TABS) tabW += textWidth(t[0], 2) + 10 + 3;
+  for (const t of TABS) tabW += fontWidth(SANS[16], t[0]) + 10 + 3;
   tabW -= 3;
   let tx = (W - tabW) / 2;
   for (const t of TABS) {
-    const w = textWidth(t[0], 2) + 10;
+    const w = fontWidth(SANS[16], t[0]) + 10;
     g.rect(tx, 168, w, 22, REGION_COLORS[t[1]]);
-    drawText(g, tx + 5, 172, t[0], 2, WHITE);
+    drawFont(g, tx + 5, 184, SANS[16], t[0], WHITE);
     tx += w + 3;
   }
 
   // ---- Timeline: THE DAY IN UTC --------------------------------------------
   g.rect(0, 190, 184, 38, NAVY);
-  drawText(g, 12, 202, 'THE DAY IN UTC', 2, WHITE);
+  drawFont(g, 12, 214, SANS[15], 'THE DAY IN UTC', WHITE);
   const tlX0 = 200, tlX1 = 1012, tlY = 209;
   g.rect(tlX0, tlY, tlX1 - tlX0, 2, NAVY);
   const dotXs = [240, 360, 480, 600, 720, 840, 930];
@@ -499,28 +533,29 @@ function drawPage() {
     g.circle(dx, tlY + 1, 5, RED);
     g.circle(dx, tlY + 1, 2, WHITE);
     const label = TIMELINE[i][0];
-    const lw = textWidth(label, 2);
+    const lw = fontWidth(SANS[15], label);
     let lx = dx - lw / 2;
     if (lx < tlX0) lx = tlX0;
     if (lx + lw > W - 4) lx = W - 4 - lw;
-    drawText(g, lx, TIMELINE[i][1] ? 191 : 212, label, 2, INK);
+    drawFont(g, lx, TIMELINE[i][1] ? 202 : 223, SANS[15], label, INK);
   }
 
   // ---- Helpers for story cells ---------------------------------------------
   function chip(x, y, label, bg) {
-    const w = textWidth(label, 2) + 10;
+    const w = fontWidth(SANS[14], label) + 10;
     g.rect(x, y, w, 16, bg);
-    drawText(g, x + 5, y + 1, label, 2, WHITE);
+    drawFont(g, x + 5, y + 12, SANS[14], label, WHITE);
     return w;
   }
-  function badge(cx, cy, n, scale) {
-    g.circle(cx, cy, scale === 2 ? 13 : 9, RED);
+  function badge(cx, cy, n, big) {
+    g.circle(cx, cy, big ? 13 : 9, RED);
     const s = String(n);
-    drawText(g, cx - textWidth(s, scale) / 2, cy - (scale === 2 ? 8 : 4), s, scale, WHITE);
+    const tab = big ? SANS[14] : SANS[12];
+    drawFont(g, cx - fontWidth(tab, s) / 2, cy + (big ? 5 : 4), tab, s, WHITE);
   }
 
   // ---- Big 3 ---------------------------------------------------------------
-  const bigY = 228, bigH = 234, bigIlloH = 92;
+  const bigY = 228, bigH = 234;
   const bigCols = [
     { x: 12, w: 496 },
     { x: 516, w: 244 },
@@ -529,6 +564,7 @@ function drawPage() {
   for (let i = 0; i < 3; i++) {
     const st = BIG[i];
     const bx = bigCols[i].x, bw = bigCols[i].w;
+    const bigIlloH = st.lead ? 88 : 92;
     g.rect(bx, bigY, bw, bigH, CARD);
     g.rect(bx, bigY, bw, 2, NAVY);
     g.rect(bx, bigY, 2, bigH, NAVY);
@@ -537,27 +573,30 @@ function drawPage() {
     g.setClip(bx + 2, bigY + 2, bw - 4, bigIlloH);
     st.draw(g, bx + 2, bigY + 2, bw - 4, bigIlloH);
     g.clearClip();
-    badge(bx + 18, bigY + 18, st.n, 2);
-    chip(bx + bw - 8 - (textWidth(st.src, 2) + 10), bigY + 8, st.src, RED);
-    chip(bx + bw - 8 - (textWidth(st.status, 2) + 10), bigY + 2 + bigIlloH - 22, st.status, STATUS_COLORS[st.status]);
+    badge(bx + 18, bigY + 18, st.n, true);
+    const srcW = fontWidth(SANS[14], st.src) + 10;
+    chip(bx + bw - 8 - srcW, bigY + 8, st.src, RED);
+    const stW = fontWidth(SANS[14], st.status) + 10;
+    chip(bx + bw - 8 - stW, bigY + 2 + bigIlloH - 22, st.status, STATUS_COLORS[st.status]);
     const tx0 = bx + 12;
-    drawText(g, tx0, bigY + bigIlloH + 8, st.kick, 2, RED);
-    const hs = st.lead ? 4 : 3;
-    const lh = st.lead ? 36 : 28;
-    let hy = bigY + bigIlloH + 8 + 20;
+    const kBase = bigY + bigIlloH + 20;
+    drawFont(g, tx0, kBase, SANS[16], st.kick, RED);
+    const htab = st.lead ? SERIF[44] : SERIF[30];
+    const hlh = st.lead ? 40 : 28;
+    let hy = kBase + hlh;
     for (const line of st.head) {
-      drawText(g, tx0, hy, line, hs, INK);
-      hy += lh;
+      drawFont(g, tx0, hy, htab, line, INK);
+      hy += hlh;
     }
-    let sy = hy + 4;
+    let sy = hy - hlh + 22;
     for (const line of st.sum) {
-      drawText(g, tx0, sy, line, 2, INK);
+      drawFont(g, tx0, sy, SANS[17], line, INK);
       sy += 20;
     }
   }
 
   // ---- Small 10: two rows of five ------------------------------------------
-  const smY0 = 462, smH = 120, smW = 196, smGap = 8, smIlloH = 44;
+  const smY0 = 462, smH = 120, smW = 196, smGap = 8, smIlloH = 40;
   for (let i = 0; i < 10; i++) {
     const st = SMALL[i];
     const col = i % 5, row = (i / 5) | 0;
@@ -571,22 +610,24 @@ function drawPage() {
     g.setClip(cx + 2, cy + 2, smW - 4, smIlloH);
     st.draw(g, cx + 2, cy + 2, smW - 4, smIlloH);
     g.clearClip();
-    badge(cx + 14, cy + 14, st.n, 1);
-    chip(cx + smW - 6 - (textWidth(st.src, 2) + 10), cy + 6, st.src, RED);
-    chip(cx + smW - 6 - (textWidth(st.status, 2) + 10), cy + 2 + smIlloH - 20, st.status, STATUS_COLORS[st.status]);
-    drawText(g, cx + 8, cy + smIlloH + 6, st.kick, 2, RED);
-    let hy = cy + smIlloH + 6 + 18;
+    badge(cx + 14, cy + 14, st.n, false);
+    const sSrcW = fontWidth(SANS[14], st.src) + 10;
+    chip(cx + smW - 6 - sSrcW, cy + 6, st.src, RED);
+    const sStW = fontWidth(SANS[14], st.status) + 10;
+    chip(cx + smW - 6 - sStW, cy + 2 + smIlloH - 20, st.status, STATUS_COLORS[st.status]);
+    drawFont(g, cx + 8, cy + smIlloH + 14, SANS[14], st.kick, RED);
+    let hy = cy + smIlloH + 14 + 22;
     for (const line of st.head) {
-      drawText(g, cx + 8, hy, line, 2, INK);
-      hy += 16;
+      drawFont(g, cx + 8, hy, SERIFC[22], line, INK);
+      hy += 22;
     }
-    drawText(g, cx + 8, hy + 2, st.sum[0], 2, GREY);
+    drawFont(g, cx + 8, hy - 4, SANS[13], st.sum[0], GREY);
   }
 
   // ---- Section header: map + ALSO ------------------------------------------
-  drawText(g, 12, 710, 'WHERE IT HAPPENED - PINS ARE PICTURE NUMBERS', 2, RED);
-  const alsoHead = 'ALSO ON 26 NOVEMBER - 24 MORE STORIES';
-  drawText(g, W - 12 - textWidth(alsoHead, 2), 710, alsoHead, 2, RED);
+  drawFont(g, 12, 724, SANS[18], 'WHERE IT HAPPENED • PINS ARE PICTURE NUMBERS', RED);
+  const alsoHead = 'ALSO ON 26 NOVEMBER • 24 MORE STORIES';
+  drawFont(g, W - 12 - fontWidth(SANS[18], alsoHead), 724, SANS[18], alsoHead, RED);
 
   // ---- Dotted world map ----------------------------------------------------
   const mapX = 12, mapY = 726 + 34, cell = 5;
@@ -601,12 +642,12 @@ function drawPage() {
     const px = mapX + pin[1] * cell + 2;
     const py = mapY + pin[2] * cell + 2;
     const s = String(pin[0]);
-    const bw2 = textWidth(s, 1) + 8;
+    const bw2 = fontWidth(SANS[12], s) + 8;
     g.rect(px - bw2 / 2 - 1, py - 7, bw2 + 2, 14, WHITE);
     g.rect(px - bw2 / 2, py - 6, bw2, 12, REGION_COLORS[pin[3]]);
-    drawText(g, px - textWidth(s, 1) / 2, py - 4, s, 1, WHITE);
+    drawFont(g, px - fontWidth(SANS[12], s) / 2, py + 4, SANS[12], s, WHITE);
   }
-  drawText(g, 12, 906, 'PINS COLOURED BY REGION', 2, GREY);
+  drawFont(g, 12, 920, SANS[14], 'PINS COLOURED BY REGION', GREY);
 
   // ---- ALSO list: two columns ----------------------------------------------
   const listCols = [[324, 12], [672, 12]];
@@ -614,13 +655,13 @@ function drawPage() {
     const col = i < 12 ? 0 : 1;
     const row = i % 12;
     const lx = listCols[col][0];
-    const ly = 730 + row * 16;
+    const ly = 745 + row * 15;
     const entry = ALSO[i][0];
     const sp = entry.indexOf(' ');
     const num = entry.slice(0, sp);
     const rest = entry.slice(sp);
-    drawText(g, lx, ly, num, 2, REGION_COLORS[ALSO[i][1]]);
-    drawText(g, lx + textWidth(num, 2), ly, rest, 2, INK);
+    drawFont(g, lx, ly, SANS[14], num, REGION_COLORS[ALSO[i][1]]);
+    drawFont(g, lx + fontWidth(SANS[14], num), ly, SANS[14], rest, INK);
   }
 
   // ---- DATE CHECK + HOW SURE -----------------------------------------------
@@ -629,25 +670,25 @@ function drawPage() {
   g.rect(12, 924, 2, 78, NAVY);
   g.rect(12 + 620 - 2, 924, 2, 78, NAVY);
   g.rect(12, 924 + 78 - 2, 620, 2, NAVY);
-  drawText(g, 24, 930, 'DATE CHECK', 2, NAVY);
-  drawText(g, 24, 948, 'ALL 37 FIRST REPORTED 26 NOV 2026', 2, NAVY);
-  drawText(g, 24, 964, 'IN SOME TIME ZONE. WED UTC = THU ASIA.', 2, NAVY);
-  drawText(g, 24, 980, 'LEFT OUT: ASTRONAUT, Q3 GDP (25 NOV)', 2, NAVY);
+  drawFont(g, 24, 942, SANS[17], 'DATE CHECK', NAVY);
+  drawFont(g, 24, 961, SANS[16], 'ALL 37 FIRST REPORTED 26 NOV 2026', NAVY);
+  drawFont(g, 24, 979, SANS[16], 'IN SOME TIME ZONE. WED UTC = THU ASIA.', NAVY);
+  drawFont(g, 24, 997, SANS[16], 'LEFT OUT: ASTRONAUT, Q3 GDP (25 NOV)', NAVY);
 
   g.rect(640, 924, 372, 78, CARD);
   g.rect(640, 924, 372, 2, NAVY);
   g.rect(640, 924, 2, 78, NAVY);
   g.rect(640 + 372 - 2, 924, 2, 78, NAVY);
   g.rect(640, 924 + 78 - 2, 372, 2, NAVY);
-  drawText(g, 652, 930, 'HOW SURE', 2, NAVY);
-  drawText(g, 652, 948, 'OFFICIAL: AUTHORITY', 2, INK);
-  drawText(g, 652, 964, 'CONFIRMED: 2+ OUTLETS', 2, INK);
-  drawText(g, 652, 980, 'REPORTED: 1 - CLAIM: ONE SIDE', 2, INK);
+  drawFont(g, 652, 942, SANS[17], 'HOW SURE', NAVY);
+  drawFont(g, 652, 961, SANS[16], 'OFFICIAL: AUTHORITY', INK);
+  drawFont(g, 652, 979, SANS[16], 'CONFIRMED: 2+ OUTLETS', INK);
+  drawFont(g, 652, 997, SANS[16], 'REPORTED: 1 • CLAIM: ONE SIDE', INK);
 
   // ---- Footer ---------------------------------------------------------------
   g.rect(0, 1002, W, 2, GOLD);
-  const foot = 'SOURCES: REUTERS, IRNA, BBC, AP, AFP, EURONEWS, YONHAP - DRAWN SCENES, NOT PHOTOS';
-  drawText(g, (W - textWidth(foot, 2)) / 2, 1008, foot, 2, GREY);
+  const foot = 'SOURCES: REUTERS, IRNA, BBC, AP, AFP, EURONEWS, YONHAP • DRAWN SCENES, NOT PHOTOS';
+  drawFont(g, (W - fontWidth(SANS[13], foot)) / 2, 1019, SANS[13], foot, GREY);
 
   return g;
 }
