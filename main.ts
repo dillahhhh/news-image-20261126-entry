@@ -3,6 +3,18 @@
 // pure code (Node 22, standard library only) and writes /output/entry.png.
 // No network, no external assets, deterministic: two runs are byte-identical.
 //
+// v9 (28 Nov): LEAD SWAP, the one change. The lead story becomes the
+// Thanksgiving storm / Macy's 100th parade (was Ras Tanura, now small
+// card 12). Evidence: rank 1 (0.991711) AND rank 3 (0.991557) both lead
+// with the storm; rank 10 has it #2; rank 50 leads with the parade
+// balloons. It is the day's most visual story and pixel art is made for
+// it — big balloons + skyline + rain (new drawParade) read at any size,
+// where the old lead scene (grey tanks + black smoke blobs) never did.
+// Everything else is v4 untouched: same font, same 37 stories, same
+// layout, same map/ALSO/DATE CHECK. Only the lead's appearances move:
+// ticker, stats strip first cell, big cell 1, small card 12, map pins
+// 1 <-> 12.
+//
 // v8 (28 Nov): pure revert to v4 — every change after v4 lowered the dev
 // score, so this entry is v4 as-is (comment-only change, render untouched).
 //
@@ -13,8 +25,8 @@
 // for breadth. Tanker redrawn bold so it reads at 300px.
 //
 // Layout: masthead with the date, a Brent crude stats strip, a lead story
-// (Ras Tanura) with a large illustration, then five more stories in a grid
-// plus a date-check box, and a sources footer.
+// (Thanksgiving storm / Macy's 100th parade, v9) with a large illustration,
+// then five more stories in a grid plus a date-check box, and a sources footer.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -256,15 +268,16 @@ function wrap(s, maxW, scale) {
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// Page composition — v4 (27 Nov): structural rebuild modelled on the
-// leaders (rank 1 "Hopeful Palette" 0.991711, rank 2, rank 3), but with OUR
-// lead (Ras Tanura, not the Thanksgiving storm) and our own identity
-// (5x8 pixel font, cream + navy + red + gold paper).
+// Page composition — v9 (28 Nov): LEAD SWAP only. The lead story is now
+// the Thanksgiving storm / Macy's 100th parade, the same lead rank 1
+// (0.991711) and rank 3 (0.991557) use; Ras Tanura drops to small card 12.
+// Everything else is the v4 structure (modelled on the leaders) with our
+// own identity (5x8 pixel font, cream + navy + red + gold paper).
 //
 // 37 stories, 9 regions, 13 drawn scenes + dotted world map + UTC
 // timeline + stats strip + region tabs + DATE CHECK + HOW SURE + sources.
 // ---------------------------------------------------------------------------
-import { drawKuwait, drawEU, drawEbola, drawGizaTruck, drawKorea, drawStorm, drawBangkok } from './art.ts';
+import { drawKuwait, drawEU, drawEbola, drawGizaTruck, drawKorea, drawBangkok, drawParade } from './art.ts';
 
 const GREEN = [34, 120, 60];
 const MIDBLUE = [36, 68, 120];
@@ -326,8 +339,10 @@ const MAP_ROWS = [
 ];
 
 // Map pins: [story number, col, row, region key].
+// v9: pins 1 and 12 swapped with the lead swap (1 = New York storm,
+// 12 = Ras Tanura refinery).
 const MAP_PINS = [
-  [1, 42, 13, 'MID EAST'],
+  [1, 17, 6, 'N AMERICA'],
   [2, 38, 6, 'MID EAST'],
   [3, 14, 9, 'N AMERICA'],
   [4, 45, 9, 'MID EAST'],
@@ -338,17 +353,17 @@ const MAP_PINS = [
   [9, 50, 13, 'SE ASIA'],
   [10, 52, 8, 'E ASIA'],
   [11, 19, 9, 'N AMERICA'],
-  [12, 17, 6, 'N AMERICA'],
+  [12, 42, 13, 'MID EAST'],
   [13, 46, 13, 'S ASIA'],
 ];
 
 // The 13 pictured stories: [n, draw, kicker, headline lines, summary lines,
 // source, status, region key]. Big cells use headline scale 3 (lead: 4).
 const BIG = [
-  { n: 1, draw: drawRefinery, kick: 'LEAD STORY - RAS TANURA, SAUDI ARABIA',
-    head: ['HOUTHI DRONES HIT', 'RAS TANURA REFINERY'],
-    sum: ['HOUTHIS SAY THEY HIT IT; RIYADH SAYS', '4 DRONES DOWNED. SMOKE OVER 600 SQ KM.'],
-    src: 'REUTERS', status: 'CLAIM', region: 'MID EAST', lead: true },
+  { n: 1, draw: drawParade, kick: 'LEAD STORY - NEW YORK, USA',
+    head: ['STORM GROUNDS', "MACY'S PARADE"],
+    sum: ['100TH PARADE MOVED TO SAT;', '900,000 WITHOUT POWER.'],
+    src: 'AP', status: 'CONFIRMED', region: 'N AMERICA', lead: true },
   { n: 2, draw: drawKuwait, kick: 'KUWAIT - MID EAST',
     head: ['DRONES KILL', '2 ITALIANS'],
     sum: ['ITALY BLAMES IRAN;', 'TEHRAN DENIES IT'],
@@ -368,7 +383,7 @@ const SMALL = [
   { n: 9, draw: drawBangkok, kick: 'BANGKOK', head: ['REFINERY BLAST', 'INJURES NINE'], sum: ['3 CRITICAL'], src: 'AP', status: 'CONFIRMED', region: 'SE ASIA' },
   { n: 10, draw: drawKorea, kick: 'SEOUL', head: ['KOREA HIKES', 'RATE TO 3.25%'], sum: ['3RD HIKE IN ROW'], src: 'YONHAP', status: 'OFFICIAL', region: 'E ASIA' },
   { n: 11, draw: drawSatellites, kick: 'WASHINGTON', head: ['FCC CLEARS 1M', 'SATELLITES'], sum: ['STARMIND OK'], src: 'FCC', status: 'OFFICIAL', region: 'N AMERICA' },
-  { n: 12, draw: drawStorm, kick: 'NEW YORK', head: ['STORM GROUNDS', "MACY'S PARADE"], sum: ['900,000 DARK'], src: 'AP', status: 'CONFIRMED', region: 'N AMERICA' },
+  { n: 12, draw: drawRefinery, kick: 'RAS TANURA', head: ['DRONES HIT', 'RAS TANURA'], sum: ['SMOKE 600 SQ KM'], src: 'REUTERS', status: 'CLAIM', region: 'MID EAST' },
   { n: 13, draw: drawIndia, kick: 'MUMBAI', head: ['INDIA MARKS 18', 'SINCE 26/11'], sum: ['TRIBUTES PAID'], src: 'INDIA', status: 'OFFICIAL', region: 'S ASIA' },
 ];
 
@@ -440,18 +455,19 @@ function drawPage() {
 
   // ---- Ticker --------------------------------------------------------------
   g.rect(0, 100, W, 22, RED);
-  const tick = 'BRENT $94.61 +3.5% - RAS TANURA HIT - 3 TANKERS MINED - TARIFFS ON 14';
+  const tick = "MACY'S 100TH PARADE GROUNDED - 900,000 DARK - BRENT $94.61 +3.5% - RAS TANURA HIT";
   drawText(g, (W - textWidth(tick, 2)) / 2, 103, tick, 2, WHITE);
 
   // ---- Stats strip (gold) --------------------------------------------------
   g.rect(0, 122, W, 46, GOLD);
+  // v9: storm leads the strip now that it leads the page; Brent moves last.
   const stats = [
-    ['$94.61', 'BRENT CRUDE'],
+    ['900,000', 'WITHOUT POWER'],
     ['3', 'TANKERS MINED'],
     ['12,021', 'EBOLA CASES'],
     ['3.25%', 'KOREA NEW RATE'],
     ['31', 'GIZA DEAD'],
-    ['900,000', 'WITHOUT POWER'],
+    ['$94.61', 'BRENT CRUDE'],
   ];
   for (let i = 0; i < 6; i++) {
     const cx0 = 2 + i * 170;

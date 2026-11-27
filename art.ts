@@ -705,10 +705,102 @@ export function drawStorm(g, x, y, w, h) {
 }
 
 // ---------------------------------------------------------------------------
-// 15. (v4) Bangkok refinery blast — low factory blocks + chimney, one huge
-// orange explosion cloud and black smoke. Different composition from the
-// lead refinery: horizontal plant, explosion dead centre.
+// 16. (v9) LEAD — Macy's 100th Thanksgiving Day Parade grounded by the
+// nor'easter: giant balloons over a Manhattan skyline in the rain.
+// Why this scene: rank 1 (0.991711) AND rank 3 (0.991557) both lead with
+// the storm; rank 10 has it #2, rank 50 leads with the parade balloons.
+// It is the day's most visual, most human story (100th parade, first
+// postponement in 100 years, ~1m without power) and pixel art is MADE
+// for it — big chunky balloons + skyline + rain read at any size, where
+// the old lead (refinery: grey tanks + black smoke blobs) never did.
+// Balloons are the largest shapes in the box, high-contrast against the
+// dark storm sky, with lit windows in the skyline for scale.
 // ---------------------------------------------------------------------------
+export function drawParade(g, x, y, w, h) {
+  // Storm night sky: horizontal bands, darker toward the top.
+  const bands = 4;
+  for (let i = 0; i < bands; i++) {
+    const t = i / (bands - 1); // 0 top -> 1 bottom
+    const c = [
+      Math.round(26 + 26 * t),
+      Math.round(32 + 30 * t),
+      Math.round(52 + 28 * t),
+    ];
+    g.rect(x, y + Math.floor((i * h) / bands), w, Math.ceil(h / bands) + 1, c);
+  }
+  // Horizon glow band behind the skyline: a lighter slate slab so the
+  // dark towers read as a skyline instead of melting into the night sky.
+  g.rect(x, y + Math.floor(h * 0.52), w, Math.floor(h * 0.30), [68, 78, 100]);
+  // Dark cloud blobs, top half.
+  const clouds = [[0.16, 0.12, 0.10], [0.45, 0.08, 0.12], [0.72, 0.12, 0.10], [0.94, 0.08, 0.08], [0.30, 0.26, 0.08], [0.58, 0.26, 0.09]];
+  for (let i = 0; i < clouds.length; i++) {
+    g.circle(x + Math.floor(w * clouds[i][0]), y + Math.floor(h * clouds[i][1]), Math.floor(w * clouds[i][2]), [20, 24, 40]);
+  }
+  // Rain: diagonal light-blue streaks across the sky.
+  for (let i = 0; i < 12; i++) {
+    const rx = x + Math.floor(w * (0.03 + i * 0.08));
+    g.line(rx, y + Math.floor(h * 0.30), rx + Math.floor(w * 0.02), y + Math.floor(h * 0.52), LIGHTBLUE, 2);
+  }
+
+  // Manhattan skyline: dark slabs of varying height along the bottom,
+  // with a few lit windows. Drawn BEFORE the balloons so the balloons
+  // float in front of the sky.
+  const baseY = y + h;
+  const towers = [
+    [0.00, 0.10, 0.50], [0.10, 0.08, 0.60], [0.18, 0.12, 0.46],
+    [0.30, 0.09, 0.56], [0.39, 0.11, 0.42], [0.50, 0.08, 0.64],
+    [0.58, 0.10, 0.48], [0.68, 0.09, 0.58], [0.77, 0.12, 0.44],
+    [0.89, 0.11, 0.52],
+  ];
+  for (let i = 0; i < towers.length; i++) {
+    const tx = x + Math.floor(w * towers[i][0]);
+    const tw = Math.floor(w * towers[i][1]);
+    const th = Math.floor(h * towers[i][2]);
+    g.rect(tx, baseY - th, tw, th, [16, 20, 32]);
+    // Rooftop antenna on the two tallest.
+    if (i === 1 || i === 5) {
+      g.rect(tx + Math.floor(tw / 2) - 1, baseY - th - Math.floor(h * 0.10), 3, Math.floor(h * 0.10), [16, 20, 32]);
+    }
+  }
+  // Lit windows: small yellow dots on the towers (fixed positions).
+  const windows = [
+    [0.03, 0.72], [0.06, 0.80], [0.12, 0.66], [0.15, 0.76], [0.20, 0.70],
+    [0.24, 0.82], [0.32, 0.68], [0.36, 0.78], [0.42, 0.72], [0.46, 0.84],
+    [0.52, 0.64], [0.55, 0.76], [0.60, 0.70], [0.64, 0.82], [0.70, 0.66],
+    [0.74, 0.78], [0.79, 0.72], [0.83, 0.84], [0.91, 0.68], [0.95, 0.78],
+    [0.05, 0.58], [0.13, 0.56], [0.22, 0.60], [0.33, 0.54], [0.44, 0.58],
+    [0.53, 0.50], [0.62, 0.56], [0.71, 0.54], [0.80, 0.58], [0.92, 0.56],
+  ];
+  for (let i = 0; i < windows.length; i++) {
+    g.rect(x + Math.floor(w * windows[i][0]), y + Math.floor(h * windows[i][1]), 3, 4, YELLOW);
+  }
+
+  // Parade balloons, with strings down to the street.
+  // Big red round balloon, left of centre — the hero shape.
+  const r1x = x + Math.floor(w * 0.28), r1y = y + Math.floor(h * 0.30);
+  const r1r = Math.floor(h * 0.26);
+  g.circle(r1x, r1y, r1r, RED);
+  g.circle(r1x - Math.floor(r1r * 0.35), r1y - Math.floor(r1r * 0.35), Math.floor(r1r * 0.28), [255, 120, 100]);
+  g.line(r1x - 4, r1y + r1r, r1x - 6, baseY - 2, WHITE, 2);
+  g.line(r1x + 4, r1y + r1r, r1x + 6, baseY - 2, WHITE, 2);
+  // Gold balloon, right of centre.
+  const r2x = x + Math.floor(w * 0.60), r2y = y + Math.floor(h * 0.24);
+  const r2r = Math.floor(h * 0.21);
+  g.circle(r2x, r2y, r2r, YELLOW);
+  g.circle(r2x - Math.floor(r2r * 0.35), r2y - Math.floor(r2r * 0.35), Math.floor(r2r * 0.28), [255, 230, 150]);
+  g.line(r2x - 3, r2y + r2r, r2x - 5, baseY - 2, WHITE, 2);
+  g.line(r2x + 3, r2y + r2r, r2x + 5, baseY - 2, WHITE, 2);
+  // Small white balloon, far right.
+  const r3x = x + Math.floor(w * 0.84), r3y = y + Math.floor(h * 0.36);
+  const r3r = Math.floor(h * 0.15);
+  g.circle(r3x, r3y, r3r, WHITE);
+  g.line(r3x, r3y + r3r, r3x - 2, baseY - 2, WHITE, 2);
+  // Small blue balloon, far left, clear of the number badge.
+  const r4x = x + Math.floor(w * 0.12), r4y = y + Math.floor(h * 0.48);
+  const r4r = Math.floor(h * 0.12);
+  g.circle(r4x, r4y, r4r, MIDBLUE);
+  g.line(r4x, r4y + r4r, r4x + 2, baseY - 2, WHITE, 2);
+}
 export function drawBangkok(g, x, y, w, h) {
   // Pale hazy sky.
   g.rect(x, y, w, h, [206, 196, 172]);
