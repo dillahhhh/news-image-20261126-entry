@@ -3,20 +3,14 @@
 // pure code (Node 22, standard library only) and writes /output/entry.png.
 // No network, no external assets, deterministic: two runs are byte-identical.
 //
+// v8 (28 Nov): pure revert to v4 — every change after v4 lowered the dev
+// score, so this entry is v4 as-is (comment-only change, render untouched).
+//
 // v3 (26 Nov afternoon): full-day news. Brent corrected to the Wed settled
 // close ($94.61, +3.5%); Hormuz now 3 tankers; Gaza toll updated (10 dead
 // Wed); two new stories — US tariffs on 14 partners, FCC clears SpaceX
 // "Starmind" 1M orbital data-center satellites. Riyadh + Pakistan space cut
 // for breadth. Tanker redrawn bold so it reads at 300px.
-//
-// v7 (28 Nov ~01:00 WIB): v4 basis, NON-FONT changes only. All 13 scenes
-// redrawn as bright flat-vector illustrations (pale skies, big subjects,
-// no black smoke blobs); big-3 scenes taller (102px); stats strip taller
-// (54px) with shortened labels and full-height dividers; tabs 5px gaps;
-// timeline labels given air; ALSO rows 18px and DATE CHECK / HOW SURE
-// lines 18px so no two text lines touch. Pixel 5x8 font everywhere,
-// palette, facts, story count and page structure unchanged from v4.
-// (v5 serif + v6 serif display reverted: 0.9486 / 0.9665 < v4 0.9772.)
 //
 // Layout: masthead with the date, a Brent crude stats strip, a lead story
 // (Ras Tanura) with a large illustration, then five more stories in a grid
@@ -434,63 +428,55 @@ function drawPage() {
   const g = new Raster(W, H, PAPER);
 
   // ---- Top strip -----------------------------------------------------------
-  g.rect(0, 0, W, 20, NAVY);
-  drawText(g, 12, 2, 'THE WORLD IN ONE DAY', 2, GOLD);
+  g.rect(0, 0, W, 22, NAVY);
+  drawText(g, 12, 3, 'THE WORLD IN ONE DAY', 2, GOLD);
   const topRight = '37 STORIES - 9 REGIONS - ALL FROM THU 26 NOV 2026';
-  drawText(g, W - 12 - textWidth(topRight, 2), 2, topRight, 2, WHITE);
+  drawText(g, W - 12 - textWidth(topRight, 2), 3, topRight, 2, WHITE);
 
   // ---- Masthead ------------------------------------------------------------
-  // v7: pixel 5x8, unchanged face — zone tightened (text y 24, rule at 78)
-  // to free vertical room for the scenes and the ALSO list below.
-  drawText(g, (W - textWidth('THURSDAY 26 NOVEMBER 2026', 6)) / 2, 24,
+  drawText(g, (W - textWidth('THURSDAY 26 NOVEMBER 2026', 6)) / 2, 38,
     'THURSDAY 26 NOVEMBER 2026', 6, INK);
-  g.rect(0, 78, W, 4, GOLD);
+  g.rect(0, 96, W, 4, GOLD);
 
   // ---- Ticker --------------------------------------------------------------
-  g.rect(0, 82, W, 18, RED);
+  g.rect(0, 100, W, 22, RED);
   const tick = 'BRENT $94.61 +3.5% - RAS TANURA HIT - 3 TANKERS MINED - TARIFFS ON 14';
-  drawText(g, (W - textWidth(tick, 2)) / 2, 84, tick, 2, WHITE);
+  drawText(g, (W - textWidth(tick, 2)) / 2, 103, tick, 2, WHITE);
 
   // ---- Stats strip (gold) --------------------------------------------------
-  // v7: taller (54px), dividers full height, labels shortened so the
-  // number and its label stop crowding each other.
-  g.rect(0, 100, W, 54, GOLD);
+  g.rect(0, 122, W, 46, GOLD);
   const stats = [
-    ['$94.61', 'BRENT'],
-    ['3', 'TANKERS'],
-    ['12,021', 'EBOLA'],
-    ['3.25%', 'KOREA RATE'],
-    ['31', 'GIZA'],
-    ['900,000', 'NO POWER'],
+    ['$94.61', 'BRENT CRUDE'],
+    ['3', 'TANKERS MINED'],
+    ['12,021', 'EBOLA CASES'],
+    ['3.25%', 'KOREA NEW RATE'],
+    ['31', 'GIZA DEAD'],
+    ['900,000', 'WITHOUT POWER'],
   ];
   for (let i = 0; i < 6; i++) {
     const cx0 = 2 + i * 170;
-    drawText(g, cx0 + (170 - textWidth(stats[i][0], 3)) / 2, 106, stats[i][0], 3, NAVY);
-    drawText(g, cx0 + (170 - textWidth(stats[i][1], 2)) / 2, 136, stats[i][1], 2, NAVY);
-    if (i > 0) g.rect(cx0, 106, 2, 44, GOLD_DARK);
+    drawText(g, cx0 + (170 - textWidth(stats[i][0], 3)) / 2, 125, stats[i][0], 3, NAVY);
+    drawText(g, cx0 + (170 - textWidth(stats[i][1], 2)) / 2, 151, stats[i][1], 2, NAVY);
+    if (i > 0) g.rect(cx0, 128, 2, 34, GOLD_DARK);
   }
 
   // ---- Region tabs ---------------------------------------------------------
-  // v7: 5px gaps + 8px padding (was 3px gaps + 10px padding) — same total
-  // width, more air between tabs.
   let tabW = 0;
-  for (const t of TABS) tabW += textWidth(t[0], 2) + 8 + 5;
-  tabW -= 5;
+  for (const t of TABS) tabW += textWidth(t[0], 2) + 10 + 3;
+  tabW -= 3;
   let tx = (W - tabW) / 2;
   for (const t of TABS) {
-    const w = textWidth(t[0], 2) + 8;
-    g.rect(tx, 154, w, 20, REGION_COLORS[t[1]]);
-    drawText(g, tx + 4, 157, t[0], 2, WHITE);
-    tx += w + 5;
+    const w = textWidth(t[0], 2) + 10;
+    g.rect(tx, 168, w, 22, REGION_COLORS[t[1]]);
+    drawText(g, tx + 5, 172, t[0], 2, WHITE);
+    tx += w + 3;
   }
 
   // ---- Timeline: THE DAY IN UTC --------------------------------------------
-  g.rect(0, 176, 184, 38, NAVY);
-  drawText(g, 12, 188, 'THE DAY IN UTC', 2, WHITE);
-  const tlX0 = 200, tlX1 = 1012, tlY = 195;
+  g.rect(0, 190, 184, 38, NAVY);
+  drawText(g, 12, 202, 'THE DAY IN UTC', 2, WHITE);
+  const tlX0 = 200, tlX1 = 1012, tlY = 209;
   g.rect(tlX0, tlY, tlX1 - tlX0, 2, NAVY);
-  // Dots spread so each label sits centred on its dot with clear air
-  // to the next label (v4's 120px spacing crowded 130px-wide labels).
   const dotXs = [240, 360, 480, 600, 720, 840, 930];
   for (let i = 0; i < TIMELINE.length; i++) {
     const dx = dotXs[i];
@@ -501,7 +487,7 @@ function drawPage() {
     let lx = dx - lw / 2;
     if (lx < tlX0) lx = tlX0;
     if (lx + lw > W - 4) lx = W - 4 - lw;
-    drawText(g, lx, TIMELINE[i][1] ? 177 : 198, label, 2, INK);
+    drawText(g, lx, TIMELINE[i][1] ? 191 : 212, label, 2, INK);
   }
 
   // ---- Helpers for story cells ---------------------------------------------
@@ -518,10 +504,7 @@ function drawPage() {
   }
 
   // ---- Big 3 ---------------------------------------------------------------
-  // v7: taller cells (244) + taller scenes (102) — the lead refinery is
-  // the strongest picture on the page. Sum lines at 19px so the second
-  // line clears the bottom border.
-  const bigY = 214, bigH = 244, bigIlloH = 102;
+  const bigY = 228, bigH = 234, bigIlloH = 92;
   const bigCols = [
     { x: 12, w: 496 },
     { x: 516, w: 244 },
@@ -553,15 +536,12 @@ function drawPage() {
     let sy = hy + 4;
     for (const line of st.sum) {
       drawText(g, tx0, sy, line, 2, INK);
-      sy += 19;
+      sy += 20;
     }
   }
 
   // ---- Small 10: two rows of five ------------------------------------------
-  // v7: cells 112 tall, scenes 40 — the freed rows fund the ALSO leading
-  // below. Kicker +4px from the scene, sum sits on hy so it clears the
-  // bottom border.
-  const smY0 = 458, smH = 112, smW = 196, smGap = 8, smIlloH = 40;
+  const smY0 = 462, smH = 120, smW = 196, smGap = 8, smIlloH = 44;
   for (let i = 0; i < 10; i++) {
     const st = SMALL[i];
     const col = i % 5, row = (i / 5) | 0;
@@ -578,22 +558,22 @@ function drawPage() {
     badge(cx + 14, cy + 14, st.n, 1);
     chip(cx + smW - 6 - (textWidth(st.src, 2) + 10), cy + 6, st.src, RED);
     chip(cx + smW - 6 - (textWidth(st.status, 2) + 10), cy + 2 + smIlloH - 20, st.status, STATUS_COLORS[st.status]);
-    drawText(g, cx + 8, cy + smIlloH + 4, st.kick, 2, RED);
-    let hy = cy + smIlloH + 4 + 18;
+    drawText(g, cx + 8, cy + smIlloH + 6, st.kick, 2, RED);
+    let hy = cy + smIlloH + 6 + 18;
     for (const line of st.head) {
       drawText(g, cx + 8, hy, line, 2, INK);
       hy += 16;
     }
-    drawText(g, cx + 8, hy, st.sum[0], 2, GREY);
+    drawText(g, cx + 8, hy + 2, st.sum[0], 2, GREY);
   }
 
   // ---- Section header: map + ALSO ------------------------------------------
-  drawText(g, 12, 690, 'WHERE IT HAPPENED - PINS ARE PICTURE NUMBERS', 2, RED);
+  drawText(g, 12, 710, 'WHERE IT HAPPENED - PINS ARE PICTURE NUMBERS', 2, RED);
   const alsoHead = 'ALSO ON 26 NOVEMBER - 24 MORE STORIES';
-  drawText(g, W - 12 - textWidth(alsoHead, 2), 690, alsoHead, 2, RED);
+  drawText(g, W - 12 - textWidth(alsoHead, 2), 710, alsoHead, 2, RED);
 
   // ---- Dotted world map ----------------------------------------------------
-  const mapX = 12, mapY = 708 + 30, cell = 5;
+  const mapX = 12, mapY = 726 + 34, cell = 5;
   for (let r = 0; r < MAP_ROWS.length; r++) {
     for (const seg of MAP_ROWS[r]) {
       for (let c = seg[0]; c <= seg[1]; c++) {
@@ -610,17 +590,15 @@ function drawPage() {
     g.rect(px - bw2 / 2, py - 6, bw2, 12, REGION_COLORS[pin[3]]);
     drawText(g, px - textWidth(s, 1) / 2, py - 4, s, 1, WHITE);
   }
-  drawText(g, 12, 876, 'PINS COLOURED BY REGION', 2, GREY);
+  drawText(g, 12, 906, 'PINS COLOURED BY REGION', 2, GREY);
 
   // ---- ALSO list: two columns ----------------------------------------------
-  // v7: 18px rows (was 16px with 16px-tall glyphs — zero leading, the
-  // wall-of-text effect). The 2px leading is bought from the sections above.
   const listCols = [[324, 12], [672, 12]];
   for (let i = 0; i < ALSO.length; i++) {
     const col = i < 12 ? 0 : 1;
     const row = i % 12;
     const lx = listCols[col][0];
-    const ly = 708 + row * 18;
+    const ly = 730 + row * 16;
     const entry = ALSO[i][0];
     const sp = entry.indexOf(' ');
     const num = entry.slice(0, sp);
@@ -630,8 +608,6 @@ function drawPage() {
   }
 
   // ---- DATE CHECK + HOW SURE -----------------------------------------------
-  // v7: body lines at 18px spacing (was 16px — touching). Title 930,
-  // lines 948 / 966 / 984, last line clears the 1002 footer rule.
   g.rect(12, 924, 620, 78, GOLD);
   g.rect(12, 924, 620, 2, NAVY);
   g.rect(12, 924, 2, 78, NAVY);
@@ -639,8 +615,8 @@ function drawPage() {
   g.rect(12, 924 + 78 - 2, 620, 2, NAVY);
   drawText(g, 24, 930, 'DATE CHECK', 2, NAVY);
   drawText(g, 24, 948, 'ALL 37 FIRST REPORTED 26 NOV 2026', 2, NAVY);
-  drawText(g, 24, 966, 'IN SOME TIME ZONE. WED UTC = THU ASIA.', 2, NAVY);
-  drawText(g, 24, 984, 'LEFT OUT: ASTRONAUT, Q3 GDP (25 NOV)', 2, NAVY);
+  drawText(g, 24, 964, 'IN SOME TIME ZONE. WED UTC = THU ASIA.', 2, NAVY);
+  drawText(g, 24, 980, 'LEFT OUT: ASTRONAUT, Q3 GDP (25 NOV)', 2, NAVY);
 
   g.rect(640, 924, 372, 78, CARD);
   g.rect(640, 924, 372, 2, NAVY);
@@ -649,8 +625,8 @@ function drawPage() {
   g.rect(640, 924 + 78 - 2, 372, 2, NAVY);
   drawText(g, 652, 930, 'HOW SURE', 2, NAVY);
   drawText(g, 652, 948, 'OFFICIAL: AUTHORITY', 2, INK);
-  drawText(g, 652, 966, 'CONFIRMED: 2+ OUTLETS', 2, INK);
-  drawText(g, 652, 984, 'REPORTED: 1 - CLAIM: ONE SIDE', 2, INK);
+  drawText(g, 652, 964, 'CONFIRMED: 2+ OUTLETS', 2, INK);
+  drawText(g, 652, 980, 'REPORTED: 1 - CLAIM: ONE SIDE', 2, INK);
 
   // ---- Footer ---------------------------------------------------------------
   g.rect(0, 1002, W, 2, GOLD);
