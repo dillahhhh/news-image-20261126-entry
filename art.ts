@@ -400,31 +400,44 @@ export function drawSatellites(g, x, y, w, h) {
   }
 }
 
+
 // ---------------------------------------------------------------------------
-// 9. (v4) Kuwait air-defence site at night — drone attack.
-// Dark desert night, radar dish + missile launcher, drone silhouette
-// top-right, orange explosion over the site, grey smoke.
-// ---------------------------------------------------------------------------
-// 2. (v11) Kuwait — two drones over the desert, nothing else. The radar,
-// launcher, explosion and smoke were five competing shapes; at thumbnail
-// size they collapsed into one dark blob. Two discs + rotor bars read.
+// 9. (v13.1) Kuwait air-defence site at night — drone attack, RECOMPOSED.
+// The v11 two-disc version read as two flat circles at 300px. Now the
+// site reads: radar dish (left) + missile launcher (right) + a big
+// orange explosion over the centre + smoke + two small drones in the
+// sky. If the render still reads as a blob at 300px, drop the smoke
+// first, then the launcher — never the explosion.
 // ---------------------------------------------------------------------------
 export function drawKuwait(g, x, y, w, h) {
   // Night sky, deep blue-black; desert ground below.
+  const groundY = y + Math.floor(h * 0.62);
   g.rect(x, y, w, Math.floor(h * 0.62), [12, 18, 40]);
-  g.rect(x, y + Math.floor(h * 0.62), w, h - Math.floor(h * 0.62), [92, 74, 52]);
-  // Drone 1, left: grey disc + rotor bar + tail line.
-  const d1x = x + Math.floor(w * 0.28), d1y = y + Math.floor(h * 0.30);
-  g.circle(d1x, d1y, Math.floor(w * 0.11), [150, 150, 155]);
-  g.line(d1x - Math.floor(w * 0.14), d1y - Math.floor(h * 0.10), d1x + Math.floor(w * 0.14), d1y - Math.floor(h * 0.10), [150, 150, 155], 3);
-  g.line(d1x, d1y + Math.floor(h * 0.08), d1x, d1y + Math.floor(h * 0.24), [150, 150, 155], 3);
-  // Drone 2, right: orange disc + grey rotor bar.
-  const d2x = x + Math.floor(w * 0.70), d2y = y + Math.floor(h * 0.26);
-  g.circle(d2x, d2y, Math.floor(w * 0.12), ORANGE);
-  g.circle(d2x - Math.floor(w * 0.04), d2y - Math.floor(w * 0.04), Math.floor(w * 0.04), YELLOW);
-  g.line(d2x - Math.floor(w * 0.15), d2y - Math.floor(h * 0.12), d2x + Math.floor(w * 0.15), d2y - Math.floor(h * 0.12), [150, 150, 155], 3);
-  // One small white dot (distant light).
-  g.circle(x + Math.floor(w * 0.88), y + Math.floor(h * 0.52), 2, WHITE);
+  g.rect(x, groundY, w, h - Math.floor(h * 0.62), [92, 74, 52]);
+  // Radar dish, left: pole from the ground up, dish on top.
+  const dishX = x + Math.floor(w * 0.16);
+  const dishY = y + Math.floor(h * 0.52);
+  g.line(dishX, groundY, dishX, dishY, [60, 64, 70], 3);
+  g.circle(dishX, dishY, Math.floor(w * 0.07), [60, 64, 70]);
+  // Missile launcher, right: base block + angled rail.
+  g.rect(x + Math.floor(w * 0.80), groundY - Math.floor(h * 0.10), Math.floor(w * 0.10), Math.floor(h * 0.10), DARK);
+  g.line(x + Math.floor(w * 0.82), groundY - Math.floor(h * 0.08), x + Math.floor(w * 0.88), groundY - Math.floor(h * 0.24), [60, 64, 70], 4);
+  // Explosion, centre: orange mass + yellow core + red rim.
+  const ex = x + Math.floor(w * 0.50), ey = y + Math.floor(h * 0.50);
+  g.circle(ex, ey, Math.floor(w * 0.13), ORANGE);
+  g.circle(ex, ey, Math.floor(w * 0.07), YELLOW);
+  g.circle(ex - Math.floor(w * 0.10), ey, Math.floor(w * 0.04), RED);
+  g.circle(ex + Math.floor(w * 0.10), ey, Math.floor(w * 0.04), RED);
+  // Smoke above the explosion.
+  g.circle(x + Math.floor(w * 0.44), y + Math.floor(h * 0.34), Math.floor(w * 0.05), [120, 120, 125]);
+  g.circle(x + Math.floor(w * 0.56), y + Math.floor(h * 0.30), Math.floor(w * 0.06), [120, 120, 125]);
+  // Two small drones: grey left, orange right, each with a rotor bar.
+  const d1x = x + Math.floor(w * 0.28), d1y = y + Math.floor(h * 0.22);
+  g.circle(d1x, d1y, Math.floor(w * 0.07), [150, 150, 155]);
+  g.line(d1x - Math.floor(w * 0.09), d1y - Math.floor(h * 0.06), d1x + Math.floor(w * 0.09), d1y - Math.floor(h * 0.06), [150, 150, 155], 3);
+  const d2x = x + Math.floor(w * 0.72), d2y = y + Math.floor(h * 0.20);
+  g.circle(d2x, d2y, Math.floor(w * 0.075), ORANGE);
+  g.line(d2x - Math.floor(w * 0.09), d2y - Math.floor(h * 0.06), d2x + Math.floor(w * 0.09), d2y - Math.floor(h * 0.06), [150, 150, 155], 3);
 }
 
 
@@ -599,6 +612,7 @@ export function drawStorm(g, x, y, w, h) {
   g.circle(x + Math.floor(w * 0.85), baseY - Math.floor(h * 0.34), Math.floor(w * 0.05), [30, 60, 40]);
 }
 
+
 // ---------------------------------------------------------------------------
 // 16. (v9) LEAD — Macy's 100th Thanksgiving Day Parade grounded by the
 // nor'easter: giant balloons over a Manhattan skyline in the rain.
@@ -722,3 +736,56 @@ export function drawBangkok(g, x, y, w, h) {
   g.circle(ex + Math.floor(w * 0.07), ey - Math.floor(h * 0.30), Math.floor(w * 0.08), BLACK);
 }
 
+// ---------------------------------------------------------------------------
+// 17. (v13) Guinea-Bissau — ballot box. One big navy box, a white ballot
+// rising from its slot with a red check, a green seal dot. No figures,
+// no fiddly detail — the box + check say "election" at any size.
+// ---------------------------------------------------------------------------
+export function drawBallot(g, x, y, w, h) {
+  // Pale sky, green ground strip.
+  g.rect(x, y, w, Math.floor(h * 0.68), [214, 222, 228]);
+  g.rect(x, y + Math.floor(h * 0.68), w, h - Math.floor(h * 0.68), [90, 140, 80]);
+  const baseY = y + Math.floor(h * 0.68);
+  // White ballot paper rising from the slot.
+  const bx = x + Math.floor(w * 0.36);
+  const bw = Math.floor(w * 0.28);
+  g.rect(bx, y + Math.floor(h * 0.06), bw, Math.floor(h * 0.42), WHITE);
+  // Red check on the ballot: two thick strokes.
+  g.line(bx + Math.floor(bw * 0.18), y + Math.floor(h * 0.30), bx + Math.floor(bw * 0.42), y + Math.floor(h * 0.42), RED, 4);
+  g.line(bx + Math.floor(bw * 0.42), y + Math.floor(h * 0.42), bx + Math.floor(bw * 0.86), y + Math.floor(h * 0.12), RED, 4);
+  // Navy ballot box with a slot.
+  const boxX = x + Math.floor(w * 0.22);
+  const boxW = Math.floor(w * 0.56);
+  const boxH = Math.floor(h * 0.34);
+  g.rect(boxX, baseY - boxH, boxW, boxH, DARKBLUE);
+  g.rect(boxX + Math.floor(boxW * 0.30), baseY - boxH - 2, Math.floor(boxW * 0.40), 4, [10, 10, 16]);
+  // Green seal dot on the box front.
+  g.circle(boxX + Math.floor(boxW * 0.50), baseY - Math.floor(boxH * 0.45), Math.floor(w * 0.05), GREEN);
+}
+
+// ---------------------------------------------------------------------------
+// 18. (v13.1) Nairobi — courthouse. A pale hall with pediment + columns
+// and a red halt bar across it: the court stopped the Ebola facility.
+// The bar, not the building, is the story — it must read at any size.
+// ---------------------------------------------------------------------------
+export function drawCourt(g, x, y, w, h) {
+  // Pale sky, grey ground.
+  g.rect(x, y, w, h, [200, 208, 216]);
+  const baseY = y + Math.floor(h * 0.86);
+  g.rect(x, baseY, w, h - Math.floor(h * 0.86), [90, 96, 104]);
+  // Courthouse hall: pale block + triangular pediment.
+  const hx = x + Math.floor(w * 0.14);
+  const hw = Math.floor(w * 0.72);
+  g.rect(hx, baseY - Math.floor(h * 0.50), hw, Math.floor(h * 0.50), [228, 226, 220]);
+  g.tri(hx, baseY - Math.floor(h * 0.50), hx + hw, baseY - Math.floor(h * 0.50), hx + Math.floor(hw / 2), baseY - Math.floor(h * 0.66), [200, 198, 190]);
+  // Three columns.
+  for (let i = 0; i < 3; i++) {
+    const cx = hx + Math.floor(hw * (0.20 + i * 0.30));
+    g.rect(cx, baseY - Math.floor(h * 0.46), Math.floor(w * 0.04), Math.floor(h * 0.46), [150, 148, 142]);
+  }
+  // Steps at the base.
+  g.rect(hx - Math.floor(w * 0.01), baseY - Math.floor(h * 0.06), hw + Math.floor(w * 0.02), Math.floor(h * 0.06), [170, 168, 162]);
+  // Red halt bar across the hall (the court stopped the facility).
+  const barY = baseY - Math.floor(h * 0.34) - Math.floor(h * 0.035);
+  g.rect(hx + Math.floor(hw * 0.06), barY, hw - Math.floor(hw * 0.12), Math.floor(h * 0.07), RED);
+}

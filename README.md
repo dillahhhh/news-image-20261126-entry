@@ -1,59 +1,50 @@
-# news-image-20261126-entry
+# news-image-20261126-entry — v13.1 (bos's layout, fix pass)
 
-[![news-image-20261126](https://make.fun/badge/news-image-20261126.svg)](https://make.fun/bounty/news-image-20261126)
-[![rank](https://make.fun/badge/news-image-20261126/dillahhhh/news-image-20261126-entry/rank.svg)](https://make.fun/bounty/news-image-20261126)
-[![reward](https://make.fun/badge/news-image-20261126/dillahhhh/news-image-20261126-entry/reward.svg)](https://make.fun/bounty/news-image-20261126)
+**The World in One Day** — v13.1 is the fix pass on v13, which rebuilds
+the layout bos drew himself (2 AI images, 2nd / 03:28 WIB is the main
+one) in code: masthead date + `WORLD NEWS SUMMARY` between gold bars,
+THE DAY IN UTC timeline, 3 big stories, 12 small stories in 2 rows of 6,
+full-width dotted world map with numbered pins + IN THIS EDITION index,
+sources footer.
 
-**The World in One Day** — a make.fun entry for
-[news-image-20261126](https://make.fun/bounty/news-image-20261126):
-one image summing up the world's news of Thursday 26 November 2026.
+No garble, no "Dola AI" watermark. 15 stories, every one verified
+against real reporting of 26 Nov 2026:
 
-The program draws a 1024x1024 newspaper front page entirely in code
-(Node 22, standard library only — a hand-rolled PNG encoder, a 5x8 bitmap
-font, and vector illustrations drawn with filled shapes) and writes it to
-`/output/entry.png`. No network, no external assets, deterministic: two runs
-produce byte-identical output.
+1. Kuwait — drone attack kills 2 Italian technicians, 2 others injured
+   (REUTERS, CONFIRMED). Lead.
+2. Gaza — airstrikes kill 8-10 Palestinians; Hamas official Abu Nada
+   killed (REUTERS/BBC, CONFIRMED). **Fixed in v13.1:** v13 said
+   "ABUELOUF KILLED" — Mohammed Abu al-Ouf died WEDNESDAY 25 Nov, not
+   Thursday. The 26 Nov dead name is Khaled Abu Nada (deputy education
+   minister) + his wife, killed at dawn in Deir al-Balah; Netanyahu
+   confirmed 26 Nov. (Likely origin: bos's AI image garbled BBC byline
+   "Rushdi Abu Alouf" into "Abuelouf killed".)
+3. Hormuz — tanker reports projectile blast near the Strait (IRNA, CLAIM).
+4. Ras Tanura — drones hit the oil facility, Saudi Arabia (REUTERS, CLAIM).
+5. Brussels — EU summit ends with no deal; de Cos to run ECB
+   (REUTERS, OFFICIAL).
+6. Bissau — military govt delays the vote, election to 2028 (AP, OFFICIAL).
+7. Washington — FCC approves SpaceX network, 1M satellites (FCC, OFFICIAL).
+8. Seoul — Korea hikes rate to 3.25%, 3rd hike this year (YONHAP, OFFICIAL).
+9. Giza — tanker fire kills 31, driver held (AP, OFFICIAL).
+10. Bangkok — refinery blast injures nine, 3 critical (AP, CONFIRMED).
+11. Mumbai — India marks 18 since 26/11, tributes paid (OFFICIAL).
+12. Washington — tariffs on 14 partners, up to 20% proposed (USTR, OFFICIAL).
+13. DR Congo — Ebola passes 12,021 cases, 5,904 dead (REUTERS, OFFICIAL).
+14. New York — Macy's 100th parade postponed to Saturday (USA TODAY,
+    OFFICIAL). Restored in v13.1: first postponement in 100 years,
+    ~900,000 without power.
+15. Nairobi — court halts Ebola site, Laikipia stopped (CITIZEN TV,
+    OFFICIAL). Restored in v13.1: High Court Kenya, 26 Nov, Judge
+    Patricia Nyaundi.
 
-Lead story: the nor'easter that grounded Macy's 100th Thanksgiving Day
-Parade in New York — the first postponement in the parade's 100 years,
-with ~900,000 Americans without power. Also covered: Houthi drones and
-the Ras Tanura refinery in Saudi Arabia, with both claims shown (the
-Houthis say they hit it; Riyadh says its defences downed four drones)
-and satellite smoke as corroboration; three tankers hitting mines in the
-Strait of Hormuz, the Gaza strike that killed a senior Hamas security
-chief (10 dead on Wednesday), the US proposing new tariffs on 14 trading
-partners, India marking the 26/11 anniversary and Constitution Day, and
-the FCC clearing SpaceX's "Starmind" network of 1 million orbital
-data-center satellites. Brent crude $94.61, up 3.5% (Wednesday's settled
-close).
-
-## v9 (28 Nov): lead swap — the storm leads
-
-v4's lead was Ras Tanura. v9 swaps the lead to the Thanksgiving storm /
-Macy's 100th parade — the same lead rank 1 (0.991711) and rank 3
-(0.991557) use, with rank 10 carrying it second and rank 50 leading
-with the parade balloons. New illustration: giant parade balloons over
-a Manhattan skyline in the rain (`drawParade`). Ras Tanura drops to
-small card 12 with its refinery scene. Nothing else changes: same 5x8
-pixel font, same 37 stories, same layout, same map/ALSO/DATE CHECK;
-only the lead's appearances move (ticker, stats strip first cell, big
-cell 1, small card 12, map pins 1 ↔ 12).
-
-## v4 (27 Nov): structural rebuild, 37 stories
-
-v2/v3 had only 6 stories — too thin against the leaders (41–48 stories).
-v4 rebuilds the page on the leaders' winning structure (masthead date,
-ticker, stats strip, region tabs, UTC timeline, 13 drawn scenes, dotted
-world map with numbered pins, numbered ALSO list, DATE CHECK, HOW SURE
-legend) but keeps OUR lead — Ras Tanura, not the Thanksgiving storm —
-and our own identity: the 5x8 pixel font and the cream + navy + red +
-gold paper. 37 stories across 9 regions: 3 big illustrated stories
-(Ras Tanura, Kuwait drone attack, US tariffs on 14 partners), 10 small
-illustrated stories (Hormuz, EU summit, Gaza, Ebola, Giza, Bangkok,
-Korea, Starmind, Macy's storm, 26/11), and 24 more in the ALSO list.
-New illustrations: Kuwait air-defence site, EU star circle, Ebola
-clinic, Giza fuel tanker, Bank of Korea, Thanksgiving storm, Bangkok
-refinery blast.
+Other v13.1 fixes: timeline clock times dropped (v12's times were never
+verified one by one — labels only now); lead scene redrawn (radar dish +
+missile launcher + explosion + smoke + 2 small drones — the two flat
+discs did not read as a drone attack at 300px); new courthouse scene
+for Nairobi; footer corrected to "ALL 15 STORIES VERIFIED 26 NOV 2026"
+(the old "EVERY STORY FROM V12 VERIFIED 37 - NO NEW CLAIMS" is false
+now that Abu Nada is a new claim vs v12's 37 — verified, but new).
 
 ## Run
 
@@ -61,12 +52,14 @@ refinery blast.
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
-## Files
+Render: `out/entry.png` (155,391 bytes,
+sha256 0b61ccc51605441ea3f99120d510887a42afbaa8fb48093267a27134029a25b1,
+deterministic across 2 runs). Copy also at
+`~/workspace/makefun/news-image-20261126-v13.1-render.png`.
 
-- `main.ts` — the program: raster, PNG encoder, font, page layout.
-- `art.ts` — the drawn illustrations (refinery, tanker, Gaza dove,
-  Gateway of India, container ship + tariff badge, satellites over Earth,
-  Kuwait site, EU stars, Ebola clinic, Giza tanker, Korea bank,
-  Thanksgiving storm, Bangkok blast).
-- `.makefun/owner.json` — the owner's wallet claim file.
-- `LICENSE` — MIT.
+## Status
+
+DO NOT SUBMIT. Entry quota is exhausted (6/6 used); bos must approve
+the render first, then the retry cron submits when the reputation cap
+reopens. v12 (37 stories, live entry 01a21e47, dev 0.977198) stays the
+alternative until bos picks v12 vs v13.1.
