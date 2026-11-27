@@ -26,66 +26,60 @@ const STEELLIGHT = [140, 158, 182];
 // 1. LEAD — Saudi Ras Tanura refinery at dusk, on fire, black smoke.
 // ---------------------------------------------------------------------------
 export function drawRefinery(g, x, y, w, h) {
-  // Sandy-orange dusk sky: horizontal bands, darker toward the top.
+  // v5: sky flipped vs v4 (pale top -> deep orange bottom) so the black
+  // smoke column pops instead of vanishing into a dark top band.
   const bands = 6;
   for (let i = 0; i < bands; i++) {
     const t = i / (bands - 1); // 0 top -> 1 bottom
     const c = [
-      Math.round(120 + 135 * t),
-      Math.round(62 + 78 * t),
-      Math.round(30 + 38 * t),
+      Math.round(238 - 38 * t),
+      Math.round(206 - 96 * t),
+      Math.round(150 - 110 * t),
     ];
     g.rect(x, y + Math.floor((i * h) / bands), w, Math.ceil(h / bands) + 1, c);
   }
   // Ground strip.
   g.rect(x, y + Math.floor(h * 0.82), w, h - Math.floor(h * 0.82), [52, 36, 26]);
 
-  // Two round storage tanks, left side.
-  const tankY = y + Math.floor(h * 0.60);
-  g.rect(x + Math.floor(w * 0.04), tankY, Math.floor(w * 0.20), Math.floor(h * 0.22), LIGHTGREY);
-  g.circle(x + Math.floor(w * 0.14), tankY, Math.floor(w * 0.10), LIGHTGREY);
-  g.rect(x + Math.floor(w * 0.27), tankY + Math.floor(h * 0.04), Math.floor(w * 0.16), Math.floor(h * 0.18), GREY);
-  g.circle(x + Math.floor(w * 0.35), tankY + Math.floor(h * 0.04), Math.floor(w * 0.08), GREY);
+  // v5b: white tanks with a red stripe — they pop on the orange sky.
+  const tankY = y + Math.floor(h * 0.55);
+  g.rect(x + Math.floor(w * 0.03), tankY, Math.floor(w * 0.20), Math.floor(h * 0.27), [238, 236, 228]);
+  g.rect(x + Math.floor(w * 0.03), tankY + Math.floor(h * 0.03), Math.floor(w * 0.20), Math.floor(h * 0.04), [200, 60, 50]);
+  g.rect(x + Math.floor(w * 0.26), tankY + Math.floor(h * 0.05), Math.floor(w * 0.16), Math.floor(h * 0.22), [232, 230, 222]);
+  g.rect(x + Math.floor(w * 0.26), tankY + Math.floor(h * 0.08), Math.floor(w * 0.16), Math.floor(h * 0.035), [200, 60, 50]);
 
-  // Distillation towers (tall thin rectangles + platforms), mid-right.
+  // v5b: two dark mid towers + ONE tall flare stack on the right with a
+  // big flame — one bold hero shape.
   const baseY = y + Math.floor(h * 0.82);
-  const towers = [
-    [0.50, 0.10, 0.52],
-    [0.60, 0.16, 0.62],
-    [0.70, 0.12, 0.66],
-  ];
-  for (let i = 0; i < towers.length; i++) {
-    const tx = x + Math.floor(w * towers[i][0]);
-    const tw = Math.floor(w * 0.055);
-    const th = Math.floor(h * towers[i][1]);
-    const ty = baseY - th;
-    g.rect(tx, ty, tw, th, STEEL);
-    // Small platforms sticking out.
-    g.rect(tx - Math.floor(w * 0.02), ty + Math.floor(th * 0.3), tw + Math.floor(w * 0.04), Math.floor(h * 0.02), STEELLIGHT);
-    g.rect(tx - Math.floor(w * 0.02), ty + Math.floor(th * 0.62), tw + Math.floor(w * 0.04), Math.floor(h * 0.02), STEELLIGHT);
-    // Pipe stack on top of each tower.
-    g.rect(tx + Math.floor(tw / 3), ty - Math.floor(h * 0.05), Math.floor(tw / 3), Math.floor(h * 0.05), DARK);
+  for (const twr of [[0.48, 0.30], [0.58, 0.40]]) {
+    const tx = x + Math.floor(w * twr[0]);
+    const tw = Math.floor(w * 0.04);
+    const th = Math.floor(h * twr[1]);
+    g.rect(tx, baseY - th, tw, th, [58, 68, 84]);
+    g.rect(tx - Math.floor(w * 0.015), baseY - th - Math.floor(h * 0.04), tw + Math.floor(w * 0.03), Math.floor(h * 0.04), [58, 68, 84]);
   }
+  const sx = x + Math.floor(w * 0.72);
+  const sw = Math.floor(w * 0.045);
+  g.rect(sx, y + Math.floor(h * 0.18), sw, baseY - (y + Math.floor(h * 0.18)), [58, 68, 84]);
+  g.rect(sx - Math.floor(w * 0.012), y + Math.floor(h * 0.30), sw + Math.floor(w * 0.024), Math.floor(h * 0.02), STEELLIGHT);
+  const fx = sx + Math.floor(sw / 2);
+  const fy = y + Math.floor(h * 0.16);
+  g.circle(fx, fy, Math.floor(w * 0.042), ORANGE);
+  g.circle(fx, fy, Math.floor(w * 0.026), YELLOW);
+  g.circle(fx, fy, Math.floor(w * 0.013), WHITE);
 
   // Pipes along the bottom.
   g.rect(x, baseY - Math.floor(h * 0.05), w, Math.floor(h * 0.02), STEELLIGHT);
   g.rect(x, baseY - Math.floor(h * 0.02), w, Math.floor(h * 0.02), STEEL);
 
-  // Flame at the base of the tallest tower.
-  const fx = x + Math.floor(w * 0.60) + Math.floor(w * 0.028);
-  g.circle(fx, baseY - Math.floor(h * 0.03), Math.floor(w * 0.045), ORANGE);
-  g.circle(fx, baseY - Math.floor(h * 0.055), Math.floor(w * 0.028), YELLOW);
-
-  // BIG thick black smoke: overlapping circles growing toward top-right.
+  // Black smoke column rising from the flare, drifting top-right — v5b:
+  // one tight column, not a field of blobs.
   const smoke = [
-    [0.62, 0.46, 0.055, BLACK],
-    [0.68, 0.38, 0.075, BLACK],
-    [0.76, 0.30, 0.095, DARK],
-    [0.84, 0.22, 0.115, BLACK],
-    [0.92, 0.14, 0.13, DARK],
-    [0.97, 0.06, 0.14, BLACK],
-    [0.72, 0.24, 0.06, GREY],
-    [0.88, 0.10, 0.07, GREY],
+    [0.78, 0.10, 0.035, BLACK],
+    [0.84, 0.06, 0.045, DARK],
+    [0.90, 0.03, 0.05, BLACK],
+    [0.96, 0.02, 0.045, DARK],
+    [0.82, 0.14, 0.025, GREY],
   ];
   for (let i = 0; i < smoke.length; i++) {
     g.circle(
@@ -131,12 +125,23 @@ export function drawTanker(g, x, y, w, h) {
     x + Math.floor(w * 0.84), hullY + hullH,
     [24, 24, 30]
   );
+  // v5c: pale deck stripe along the hull top + a row of portholes, so
+  // the black slab reads as a ship's hull, not a smear.
+  g.rect(x + Math.floor(w * 0.04), hullY, Math.floor(w * 0.80), 3, STEELLIGHT);
+  for (const px of [0.14, 0.26, 0.38, 0.70]) {
+    g.circle(x + Math.floor(w * px), hullY + Math.floor(hullH / 2), 2, LIGHTBLUE);
+  }
   // Red waterline stripe, thick enough to see at thumbnail size.
   g.rect(x + Math.floor(w * 0.04), hullY + hullH - 4, Math.floor(w * 0.82), 4, RED);
 
   // Superstructure block at the stern (left), white with red top.
   g.rect(x + Math.floor(w * 0.06), hullY - Math.floor(h * 0.26), Math.floor(w * 0.16), Math.floor(h * 0.26), WHITE);
   g.rect(x + Math.floor(w * 0.06), hullY - Math.floor(h * 0.26), Math.floor(w * 0.16), Math.floor(h * 0.06), RED);
+  // v5c: bridge windows + a mast with a small red flag on the stern.
+  g.rect(x + Math.floor(w * 0.09), hullY - Math.floor(h * 0.20), Math.floor(w * 0.04), Math.floor(h * 0.05), DARKBLUE);
+  g.rect(x + Math.floor(w * 0.15), hullY - Math.floor(h * 0.20), Math.floor(w * 0.04), Math.floor(h * 0.05), DARKBLUE);
+  g.line(x + Math.floor(w * 0.14), hullY - Math.floor(h * 0.26), x + Math.floor(w * 0.14), hullY - Math.floor(h * 0.40), DARK, 2);
+  g.tri(x + Math.floor(w * 0.14), hullY - Math.floor(h * 0.40), x + Math.floor(w * 0.22), hullY - Math.floor(h * 0.36), x + Math.floor(w * 0.14), hullY - Math.floor(h * 0.32), RED);
   // One tall funnel behind the superstructure.
   g.rect(x + Math.floor(w * 0.26), hullY - Math.floor(h * 0.18), Math.floor(w * 0.07), Math.floor(h * 0.18), DARK);
 }
@@ -172,25 +177,31 @@ export function drawGaza(g, x, y, w, h) {
   g.rect(x, baseY - Math.floor(h * 0.06), w, Math.floor(h * 0.06), GREY);
 
   // Dove in flight — a classic peace-dove silhouette, sized to fill the
-  // box: a fat horizontal body, a tall swept wing rooted on the body,
+  // box: a slim horizontal body, a tall swept wing rooted on the body,
   // a fanned tail, a distinct head with beak and eye, and an olive
   // branch. A navy drop-shadow keeps the white edges crisp on the pale sky.
-  const F = (fx, fy) => [x + Math.round(w * fx), y + Math.round(h * fy)];
+  // v5c: the v5 body was two fat overlapping circles, so wing bases +
+  // body merged into one white blob. The body is now slimmer, the wing
+  // bases narrower (a visible notch between wing and body), and the head
+  // smaller and higher, so the parts read separately.
+  // v5c: the dove sits 0.08w left of centre so its head + beak clear
+  // the source/status chips at top-right (the v5 beak hid under them).
+  const F = (fx, fy) => [x + Math.round(w * (fx - 0.08)), y + Math.round(h * fy)];
   const tris = [
-    // raised wing (base sits on the body, tip near the top edge)
-    [F(0.38, 0.48), F(0.47, 0.04), F(0.58, 0.46)],
-    // tail fan, two feathers
-    [F(0.40, 0.46), F(0.22, 0.30), F(0.24, 0.52)],
-    [F(0.40, 0.52), F(0.24, 0.58), F(0.22, 0.74)],
+    // raised wing (narrow base on the body, tip near the top edge)
+    [F(0.43, 0.50), F(0.48, 0.04), F(0.55, 0.48)],
+    // tail fan, two slim feathers with a gap between them
+    [F(0.40, 0.47), F(0.19, 0.28), F(0.22, 0.49)],
+    [F(0.41, 0.53), F(0.21, 0.61), F(0.19, 0.76)],
     // lower wing, swept down
-    [F(0.42, 0.52), F(0.52, 0.92), F(0.58, 0.54)],
+    [F(0.44, 0.53), F(0.52, 0.92), F(0.57, 0.55)],
   ];
   const circs = [
-    [F(0.45, 0.48), Math.floor(w * 0.075)], // body
-    [F(0.55, 0.50), Math.floor(w * 0.06)],  // chest
-    [F(0.63, 0.40), Math.floor(w * 0.042)], // head
+    [F(0.44, 0.50), Math.floor(w * 0.048)], // slim body
+    [F(0.55, 0.51), Math.floor(w * 0.040)], // chest
+    [F(0.64, 0.38), Math.floor(w * 0.033)], // head, smaller + higher
   ];
-  for (const pass of [[4, 4, DARKBLUE], [0, 0, WHITE]]) {
+  for (const pass of [[3, 3, DARKBLUE], [0, 0, WHITE]]) {
     const ox = pass[0], oy = pass[1], col = pass[2];
     for (const t of tris) {
       g.tri(t[0][0] + ox, t[0][1] + oy, t[1][0] + ox, t[1][1] + oy, t[2][0] + ox, t[2][1] + oy, col);
@@ -199,10 +210,10 @@ export function drawGaza(g, x, y, w, h) {
       g.circle(c[0][0] + ox, c[0][1] + oy, c[1], col);
     }
   }
-  // Beak, eye, olive branch (drawn once, on top).
-  const beak = [F(0.66, 0.38), F(0.72, 0.41), F(0.66, 0.44)];
+  // Beak (longer, clearer), eye, olive branch (drawn once, on top).
+  const beak = [F(0.67, 0.37), F(0.74, 0.40), F(0.67, 0.43)];
   g.tri(beak[0][0], beak[0][1], beak[1][0], beak[1][1], beak[2][0], beak[2][1], ORANGE);
-  const eye = F(0.64, 0.38);
+  const eye = F(0.645, 0.375);
   g.circle(eye[0], eye[1], 2, DARKBLUE);
   const b0 = F(0.70, 0.41), b1 = F(0.86, 0.55);
   g.line(b0[0], b0[1], b1[0], b1[1], GREEN, 3);
@@ -419,10 +430,9 @@ export function drawTariffs(g, x, y, w, h) {
     );
   }
 
-  // Red "%" badge, top-right: circle + two white dots + diagonal bar.
-  // Sized big and bold so the % survives a 300px thumbnail.
-  const bx = x + Math.floor(w * 0.84), by = y + Math.floor(h * 0.26);
-  const br = Math.floor(w * 0.135);
+  // Red "%" badge — v5b: smaller and lower, clear of the stacked chips.
+  const bx = x + Math.floor(w * 0.80), by = y + Math.floor(h * 0.38);
+  const br = Math.floor(w * 0.115);
   g.circle(bx, by, br, RED);
   g.circle(bx - Math.floor(br * 0.38), by - Math.floor(br * 0.38), Math.floor(br * 0.30), WHITE);
   g.circle(bx + Math.floor(br * 0.38), by + Math.floor(br * 0.38), Math.floor(br * 0.30), WHITE);
@@ -503,50 +513,75 @@ export function drawKuwait(g, x, y, w, h) {
   g.circle(rx, baseY - Math.floor(h * 0.34), Math.floor(w * 0.09), LIGHTGREY);
   g.line(rx - Math.floor(w * 0.07), baseY - Math.floor(h * 0.40), rx + Math.floor(w * 0.07), baseY - Math.floor(h * 0.28), GREY, 3);
 
-  // Missile launcher truck, centre: bed + angled missile.
+  // Missile launcher truck, centre — v5b: pale steel bed so it reads
+  // against the dark ground, white missile with a red tip.
   const lx = x + Math.floor(w * 0.44);
-  g.rect(lx, baseY - Math.floor(h * 0.10), Math.floor(w * 0.26), Math.floor(h * 0.10), DARK);
+  g.rect(lx, baseY - Math.floor(h * 0.10), Math.floor(w * 0.26), Math.floor(h * 0.10), [170, 178, 190]);
   g.circle(lx + Math.floor(w * 0.05), baseY - 3, 4, BLACK);
   g.circle(lx + Math.floor(w * 0.21), baseY - 3, 4, BLACK);
-  g.line(lx + Math.floor(w * 0.04), baseY - Math.floor(h * 0.10), lx + Math.floor(w * 0.20), baseY - Math.floor(h * 0.42), STEELLIGHT, 6);
+  g.line(lx + Math.floor(w * 0.04), baseY - Math.floor(h * 0.10), lx + Math.floor(w * 0.20), baseY - Math.floor(h * 0.42), WHITE, 6);
   g.tri(lx + Math.floor(w * 0.20), baseY - Math.floor(h * 0.42), lx + Math.floor(w * 0.24), baseY - Math.floor(h * 0.36), lx + Math.floor(w * 0.16), baseY - Math.floor(h * 0.36), RED);
 
-  // Explosion burst over the launcher: orange + yellow core.
+  // Explosion burst over the launcher: orange + yellow core — v5: bigger.
   const ex = lx + Math.floor(w * 0.13);
   const ey = baseY - Math.floor(h * 0.34);
-  g.circle(ex, ey, Math.floor(w * 0.10), ORANGE);
-  g.circle(ex + Math.floor(w * 0.04), ey - Math.floor(h * 0.05), Math.floor(w * 0.06), YELLOW);
-  g.circle(ex - Math.floor(w * 0.05), ey + Math.floor(h * 0.03), Math.floor(w * 0.05), RED);
+  g.circle(ex, ey, Math.floor(w * 0.13), ORANGE);
+  g.circle(ex + Math.floor(w * 0.04), ey - Math.floor(h * 0.05), Math.floor(w * 0.08), YELLOW);
+  g.circle(ex - Math.floor(w * 0.05), ey + Math.floor(h * 0.03), Math.floor(w * 0.06), RED);
+  g.circle(ex, ey - Math.floor(h * 0.02), Math.floor(w * 0.035), WHITE);
   // Smoke above the blast.
   g.circle(ex + Math.floor(w * 0.08), ey - Math.floor(h * 0.22), Math.floor(w * 0.07), GREY);
   g.circle(ex + Math.floor(w * 0.14), ey - Math.floor(h * 0.32), Math.floor(w * 0.08), DARK);
 
-  // Attacking drone, top-right: dark cross silhouette with red eye.
-  const dx = x + Math.floor(w * 0.82);
-  const dy = y + Math.floor(h * 0.16);
-  g.line(dx - Math.floor(w * 0.06), dy, dx + Math.floor(w * 0.06), dy, BLACK, 3);
-  g.line(dx, dy - Math.floor(h * 0.05), dx, dy + Math.floor(h * 0.05), BLACK, 3);
-  g.circle(dx, dy, 3, RED);
+  // Attacking drone — v5b: moved to top-centre-left, clear of the
+  // stacked source/status chips at top-right.
+  const dx = x + Math.floor(w * 0.32);
+  const dy = y + Math.floor(h * 0.14);
+  g.line(dx - Math.floor(w * 0.09), dy, dx + Math.floor(w * 0.09), dy, BLACK, 4);
+  g.line(dx, dy - Math.floor(h * 0.08), dx, dy + Math.floor(h * 0.08), BLACK, 4);
+  g.circle(dx, dy, 4, RED);
+}
+
+// 5-point star as a triangle fan from the centre over 10 alternating
+// outer/inner vertices. Used by the EU scene (v5c: dots -> real stars).
+function drawStar(g, cx, cy, R, col) {
+  const pts = [];
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const r = i % 2 === 0 ? R : R * 0.42;
+    pts.push([Math.round(cx + r * Math.cos(a)), Math.round(cy + r * Math.sin(a))]);
+  }
+  for (let i = 0; i < 10; i++) {
+    const p1 = pts[i], p2 = pts[(i + 1) % 10];
+    g.tri(cx, cy, p1[0], p1[1], p2[0], p2[1], col);
+  }
 }
 
 // ---------------------------------------------------------------------------
 // 10. (v4) EU summit — circle of gold stars on EU blue, one star dimmed.
 // The dimmed star + the dark table line say "no deal" without words.
+// v5c: the v5 ring (radius 0.26w on a 44px-tall box) was clipped top and
+// bottom, so only ~2 dots were ever visible. The ring is now an ellipse
+// that fits the free band above the caption bar, and the dots are real
+// 5-point stars (bottom one still dimmed grey).
 // ---------------------------------------------------------------------------
 export function drawEU(g, x, y, w, h) {
   g.rect(x, y, w, h, [0, 44, 110]);
   // Subtle lighter arc behind the stars.
   g.circle(x + Math.floor(w * 0.50), y + Math.floor(h * 0.52), Math.floor(w * 0.34), [16, 66, 140]);
-  // Circle of 12 gold stars; the bottom one is dimmed (grey).
+  // Ellipse of 12 gold 5-point stars, fully inside the free band
+  // (caption bar starts at 0.70h, stars stay clear of it).
   const cx = x + Math.floor(w * 0.50);
-  const cy = y + Math.floor(h * 0.46);
-  const rad = Math.floor(w * 0.26);
+  const cy = y + Math.floor(h * 0.37);
+  const rx = Math.floor(w * 0.26);
+  const ry = Math.floor(h * 0.25);
+  const sr = 4;
   for (let i = 0; i < 12; i++) {
     const a = (i / 12) * Math.PI * 2 - Math.PI / 2;
-    const sx = cx + Math.round(rad * Math.cos(a));
-    const sy = cy + Math.round(rad * Math.sin(a) * 0.9);
+    const sx = cx + Math.round(rx * Math.cos(a));
+    const sy = cy + Math.round(ry * Math.sin(a));
     const col = i === 6 ? GREY : YELLOW;
-    g.circle(sx, sy, Math.max(3, Math.floor(w * 0.028)), col);
+    drawStar(g, sx, sy, sr, col);
   }
   // Summit table: dark line across the bottom third + two flags.
   g.rect(x, y + Math.floor(h * 0.82), w, Math.floor(h * 0.04), [10, 20, 50]);
@@ -669,12 +704,13 @@ export function drawKorea(g, x, y, w, h) {
 // houses. One lit window keeps it from reading as pure black.
 // ---------------------------------------------------------------------------
 export function drawStorm(g, x, y, w, h) {
-  // Storm sky: dark grey-blue.
-  g.rect(x, y, w, Math.floor(h * 0.58), [52, 60, 78]);
+  // Storm sky: dark grey-blue — v5: lightened a notch so the houses,
+  // rain and bolt read instead of sinking into black.
+  g.rect(x, y, w, Math.floor(h * 0.58), [72, 82, 108]);
   // Cloud blobs, darker.
   const clouds = [[0.18, 0.16, 0.14], [0.42, 0.10, 0.17], [0.68, 0.18, 0.15], [0.88, 0.10, 0.11], [0.30, 0.30, 0.12], [0.58, 0.32, 0.13]];
   for (let i = 0; i < clouds.length; i++) {
-    g.circle(x + Math.floor(w * clouds[i][0]), y + Math.floor(h * clouds[i][1]), Math.floor(w * clouds[i][2]), [34, 40, 56]);
+    g.circle(x + Math.floor(w * clouds[i][0]), y + Math.floor(h * clouds[i][1]), Math.floor(w * clouds[i][2]), [48, 56, 76]);
   }
   // Rain: diagonal light-blue lines.
   for (let i = 0; i < 7; i++) {
