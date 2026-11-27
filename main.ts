@@ -3,33 +3,27 @@
 // pure code (Node 22, standard library only) and writes /output/entry.png.
 // No network, no external assets, deterministic: two runs are byte-identical.
 //
-// v5 (27 Nov): the v4 rebuild scored 0.977198 (rank #10,888/27,417) — the
-// 5x8 pixel font turned to mush at 300px, so the judge could not read the
-// masthead, the stats or the small headlines. v5 replaces it with a stroke
-// serif font (font.ts: glyphs as polyline data, thick/thin contrast, slab
-// serifs baked in) for the masthead, sub-headline, stats, tabs, timeline,
-// headlines, summaries, ALSO list, date check and footer — sentence case,
-// like the leaders (rank 1 "Hopeful Palette" 0.991711, rank 2, rank 3).
-// The pixel font survives only as an identity accent: the top eyebrow
-// strip and the numbered badges. Every illustration gains a caption bar
-// at its foot, rank-1 style ("AIR-DEFENCE SITE", "12,021 CASES").
-// v5c: the v5 stacked scale-2 pixel chips on the 10 SMALL cards were 16px
-// tall each, so the status chip covered the caption bar and hid the
-// caption text — small-card chips are now 12px serif chips stacked
-// top-right with a 5px clear gap above the caption bar. The 3 big cards
-// were clean and are untouched. Facts, story count (37), lead
-// (Ras Tanura) and palette are v4's, unchanged.
+// v3 (26 Nov afternoon): full-day news. Brent corrected to the Wed settled
+// close ($94.61, +3.5%); Hormuz now 3 tankers; Gaza toll updated (10 dead
+// Wed); two new stories — US tariffs on 14 partners, FCC clears SpaceX
+// "Starmind" 1M orbital data-center satellites. Riyadh + Pakistan space cut
+// for breadth. Tanker redrawn bold so it reads at 300px.
 //
-// Layout: eyebrow strip, serif masthead, red sub-headline, stats strip,
-// region tabs, UTC timeline, 3 big stories, 10 small stories, dotted world
-// map + ALSO list, DATE CHECK + HOW SURE, sources footer.
+// v6 (28 Nov ~00:00 WIB): v4 basis. Display type is now a real serif
+// (Liberation Serif Bold, rasterized to bitmaps in serif.ts) for the
+// masthead, stats numbers and big-3 headlines; everything else keeps
+// v4's 5x8 pixel font. Tabs +5px gaps, timeline dots spread, ALSO +4px
+// headroom. v5's stroke serif + redrawn scenes reverted (0.9486).
+//
+// Layout: masthead with the date, a Brent crude stats strip, a lead story
+// (Ras Tanura) with a large illustration, then five more stories in a grid
+// plus a date-check box, and a sources footer.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { drawRefinery, drawTanker, drawGaza, drawIndia, drawTariffs, drawSatellites } from './art.ts';
-import { drawKuwait, drawEU, drawEbola, drawGizaTruck, drawKorea, drawStorm, drawBangkok } from './art.ts';
-import { drawSerif, serifWidth, wrapSerif } from './font.ts';
+import { SERIF, serifWidth } from './serif.ts';
 
 const W = 1024;
 const H = 1024;
@@ -166,9 +160,9 @@ function encodePNG(raster) {
 }
 
 // ---------------------------------------------------------------------------
-// 5x8 bitmap font — v5: identity accent only (top eyebrow strip, numbered
-// badges). Everything else is the stroke serif in font.ts.
-// ---------------------------------------------------------------------------
+// 5x8 bitmap font. Glyphs are 8 rows of 5 bits ('1' = ink).
+// Taller than the v1 5x7: the extra row gives cleaner curves
+// (S, C, G, O, Q, 4, 9) and a more even, newspaper-like texture.
 const FONT = {
   A: ['01110', '10001', '10001', '10001', '11111', '10001', '10001', '10001'],
   B: ['11110', '10001', '10001', '11110', '10001', '10001', '10001', '11110'],
@@ -246,10 +240,59 @@ function drawText(g, x, y, s, scale, c) {
   return cx;
 }
 
+// Serif display face: Liberation Serif Bold glyphs rasterized to 1-bit
+// bitmaps (see serif.ts). Blits glyph bitmaps at the pen position; y is
+// the BASELINE. Glyph entry: [advance, xoff, yoff, w, h, rows...].
+function drawSerif(g, x, baselineY, table, s, c) {
+  let cx = x;
+  for (const ch of s) {
+    const gl = table[ch] || table['?'];
+    const adv = gl[0];
+    if (gl.length > 5) {
+      const xoff = gl[1], yoff = gl[2], w = gl[3];
+      for (let r = 0; r < gl.length - 5; r++) {
+        const row = gl[5 + r];
+        const yy = baselineY + yoff + r;
+        for (let col = 0; col < w; col++) {
+          if (row[col] === '1') g.px(cx + xoff + col, yy, c);
+        }
+      }
+    }
+    cx += adv;
+  }
+  return cx;
+}
+
+// Word-wrap plain text to a pixel width. Returns array of lines.
+function wrap(s, maxW, scale) {
+  const words = s.split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    const trial = cur ? cur + ' ' + w : w;
+    if (textWidth(trial, scale) <= maxW || !cur) {
+      cur = trial;
+    } else {
+      lines.push(cur);
+      cur = w;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
 // ---------------------------------------------------------------------------
-// Page data — v5: same 37 stories and facts as v4, headlines re-set in
-// sentence-case serif, each pictured story gains a caption bar label.
 // ---------------------------------------------------------------------------
+// Page composition — v4 (27 Nov): structural rebuild modelled on the
+// leaders (rank 1 "Hopeful Palette" 0.991711, rank 2, rank 3), but with OUR
+// lead (Ras Tanura, not the Thanksgiving storm) and our own identity
+// (5x8 pixel font, cream + navy + red + gold paper).
+//
+// 37 stories, 9 regions, 13 drawn scenes + dotted world map + UTC
+// timeline + stats strip + region tabs + DATE CHECK + HOW SURE + sources.
+// ---------------------------------------------------------------------------
+import { drawKuwait, drawEU, drawEbola, drawGizaTruck, drawKorea, drawStorm, drawBangkok } from './art.ts';
+
 const GREEN = [34, 120, 60];
 const MIDBLUE = [36, 68, 120];
 const PURPLE = [120, 60, 120];
@@ -326,68 +369,65 @@ const MAP_PINS = [
   [13, 46, 13, 'S ASIA'],
 ];
 
-// The 13 pictured stories: [n, draw, kicker, caption, headline lines,
-// summary lines, source, status, region key].
+// The 13 pictured stories: [n, draw, kicker, headline lines, summary lines,
+// source, status, region key]. Big cells use headline scale 3 (lead: 4).
 const BIG = [
-  { n: 1, draw: drawRefinery, kick: 'LEAD STORY · RAS TANURA, SAUDI ARABIA',
-    cap: 'RAS TANURA REFINERY',
-    head: ['Houthi drones hit', 'Ras Tanura refinery'],
-    sum: ['Houthis say they hit it; Riyadh says', '4 drones downed. Smoke over 600 sq km.'],
+  { n: 1, draw: drawRefinery, kick: 'LEAD STORY - RAS TANURA, SAUDI ARABIA',
+    head: ['HOUTHI DRONES HIT', 'RAS TANURA REFINERY'],
+    sum: ['HOUTHIS SAY THEY HIT IT; RIYADH SAYS', '4 DRONES DOWNED. SMOKE OVER 600 SQ KM.'],
     src: 'REUTERS', status: 'CLAIM', region: 'MID EAST', lead: true },
-  { n: 2, draw: drawKuwait, kick: 'KUWAIT · MID EAST',
-    cap: 'AIR-DEFENCE SITE',
-    head: ['Drones kill two', 'Italians in Kuwait'],
-    sum: ['Italy blames Iran;', 'Tehran denies it.'],
+  { n: 2, draw: drawKuwait, kick: 'KUWAIT - MID EAST',
+    head: ['DRONES KILL', '2 ITALIANS'],
+    sum: ['ITALY BLAMES IRAN;', 'TEHRAN DENIES IT'],
     src: 'REUTERS', status: 'CONFIRMED', region: 'MID EAST', lead: false },
-  { n: 3, draw: drawTariffs, kick: 'WASHINGTON · TRADE',
-    cap: '14 PARTNERS',
-    head: ['Tariffs proposed', 'on 14 partners'],
-    sum: ['Up to 20% proposed;', 'China, EU object.'],
+  { n: 3, draw: drawTariffs, kick: 'WASHINGTON - TRADE',
+    head: ['TARIFFS ON', '14 PARTNERS'],
+    sum: ['UP TO 20% PROPOSED', 'CHINA, EU OBJECT'],
     src: 'USTR', status: 'OFFICIAL', region: 'N AMERICA', lead: false },
 ];
 
 const SMALL = [
-  { n: 4, draw: drawTanker, kick: 'HORMUZ', cap: 'STRAIT OF HORMUZ', head: ['Three tankers hit', 'by mines in Hormuz'], sum: ['Iran says'], src: 'IRNA', status: 'CLAIM', region: 'MID EAST' },
-  { n: 5, draw: drawEU, kick: 'BRUSSELS', cap: 'NO DEAL', head: ['EU summit ends', 'with no deal'], sum: ['De Cos gets ECB'], src: 'REUTERS', status: 'OFFICIAL', region: 'EUROPE' },
-  { n: 6, draw: drawGaza, kick: 'GAZA', cap: 'SECURITY CHIEF KILLED', head: ['Gaza strike kills', 'top Hamas chief'], sum: ['Abuelouf killed'], src: 'REUTERS', status: 'OFFICIAL', region: 'MID EAST' },
-  { n: 7, draw: drawEbola, kick: 'DR CONGO', cap: '12,021 CASES', head: ['Ebola passes', '12,021 cases'], sum: ['5,904 dead'], src: 'REUTERS', status: 'OFFICIAL', region: 'AFRICA' },
-  { n: 8, draw: drawGizaTruck, kick: 'GIZA', cap: '31 DEAD', head: ['Tanker fire kills', '31 in Giza'], sum: ['Driver held'], src: 'AP', status: 'OFFICIAL', region: 'AFRICA' },
-  { n: 9, draw: drawBangkok, kick: 'BANGKOK', cap: 'BANGKOK REFINERY', head: ['Refinery blast', 'injures nine'], sum: ['3 critical'], src: 'AP', status: 'CONFIRMED', region: 'SE ASIA' },
-  { n: 10, draw: drawKorea, kick: 'SEOUL', cap: '3.25% NEW RATE', head: ['Korea hikes rate', 'to 3.25%'], sum: ['3rd hike in a row'], src: 'YONHAP', status: 'OFFICIAL', region: 'E ASIA' },
-  { n: 11, draw: drawSatellites, kick: 'WASHINGTON', cap: '1M SATELLITES', head: ['FCC clears 1m', 'satellites'], sum: ['Starmind OK'], src: 'FCC', status: 'OFFICIAL', region: 'N AMERICA' },
-  { n: 12, draw: drawStorm, kick: 'NEW YORK', cap: '900,000 DARK', head: ['Storm grounds', "Macy's parade"], sum: ['900,000 dark'], src: 'AP', status: 'CONFIRMED', region: 'N AMERICA' },
-  { n: 13, draw: drawIndia, kick: 'MUMBAI', cap: '18 YEARS · 26/11', head: ['India marks 18', 'years since 26/11'], sum: ['Tributes paid'], src: 'INDIA', status: 'OFFICIAL', region: 'S ASIA' },
+  { n: 4, draw: drawTanker, kick: 'HORMUZ', head: ['3 TANKERS HIT', 'MINES IN HORMUZ'], sum: ['IRAN SAYS'], src: 'IRNA', status: 'CLAIM', region: 'MID EAST' },
+  { n: 5, draw: drawEU, kick: 'BRUSSELS', head: ['EU SUMMIT ENDS', 'WITH NO DEAL'], sum: ['DE COS GETS ECB'], src: 'REUTERS', status: 'OFFICIAL', region: 'EUROPE' },
+  { n: 6, draw: drawGaza, kick: 'GAZA', head: ['GAZA STRIKE', 'KILLS TOP HAMAS'], sum: ['ABUELOUF KILLED'], src: 'REUTERS', status: 'OFFICIAL', region: 'MID EAST' },
+  { n: 7, draw: drawEbola, kick: 'DR CONGO', head: ['EBOLA PASSES', '12,021 CASES'], sum: ['5,904 DEAD'], src: 'REUTERS', status: 'OFFICIAL', region: 'AFRICA' },
+  { n: 8, draw: drawGizaTruck, kick: 'GIZA', head: ['TANKER FIRE', 'KILLS 31'], sum: ['DRIVER HELD'], src: 'AP', status: 'OFFICIAL', region: 'AFRICA' },
+  { n: 9, draw: drawBangkok, kick: 'BANGKOK', head: ['REFINERY BLAST', 'INJURES NINE'], sum: ['3 CRITICAL'], src: 'AP', status: 'CONFIRMED', region: 'SE ASIA' },
+  { n: 10, draw: drawKorea, kick: 'SEOUL', head: ['KOREA HIKES', 'RATE TO 3.25%'], sum: ['3RD HIKE IN ROW'], src: 'YONHAP', status: 'OFFICIAL', region: 'E ASIA' },
+  { n: 11, draw: drawSatellites, kick: 'WASHINGTON', head: ['FCC CLEARS 1M', 'SATELLITES'], sum: ['STARMIND OK'], src: 'FCC', status: 'OFFICIAL', region: 'N AMERICA' },
+  { n: 12, draw: drawStorm, kick: 'NEW YORK', head: ['STORM GROUNDS', "MACY'S PARADE"], sum: ['900,000 DARK'], src: 'AP', status: 'CONFIRMED', region: 'N AMERICA' },
+  { n: 13, draw: drawIndia, kick: 'MUMBAI', head: ['INDIA MARKS 18', 'SINCE 26/11'], sum: ['TRIBUTES PAID'], src: 'INDIA', status: 'OFFICIAL', region: 'S ASIA' },
 ];
 
 // ALSO list (24 more stories, numbered 14-37): [text, region key].
 const ALSO = [
-  ['14 Riyadh: PIF tower hit', 'MID EAST'],
-  ['15 Jazan: Nepali killed', 'MID EAST'],
-  ['16 Odesa: Grain ships hit', 'EUROPE'],
-  ['17 Pyongyang: More nukes', 'E ASIA'],
-  ['18 Hong Kong: 168 remembered', 'E ASIA'],
-  ['19 Nairobi: Ebola site halted', 'AFRICA'],
-  ['20 Bissau: Vote to 2028', 'AFRICA'],
-  ['21 Dhaka: 400 factories shut', 'S ASIA'],
-  ['22 Kathmandu: 4,000 dead', 'S ASIA'],
-  ['23 Bogor: Mine flood kills 13', 'SE ASIA'],
-  ['24 Nvidia halts AI servers', 'SE ASIA'],
-  ['25 California: King tides', 'N AMERICA'],
-  ['26 Ottawa: Student caps', 'N AMERICA'],
-  ['27 London: Migration 77,000', 'EUROPE'],
-  ['28 Paris: Depardieu trial', 'EUROPE'],
-  ['29 Stockholm: Centre backs PM', 'EUROPE'],
-  ['30 Madrid: De Cos to run ECB', 'EUROPE'],
-  ['31 Buenos Aires: Recession', 'LATIN AM'],
-  ['32 Argentina: Printing halt', 'LATIN AM'],
-  ['33 Mexico: SpaceX talks', 'LATIN AM'],
-  ['34 Sinner out of Aus Open', 'OCEANIA'],
-  ['35 Canberra: 2035 target miss', 'OCEANIA'],
-  ['36 Trump: Putin, pull back', 'N AMERICA'],
-  ['37 Katz: Displace 1m Gazans', 'MID EAST'],
+  ['14 RIYADH: PIF TOWER HIT', 'MID EAST'],
+  ['15 JAZAN: NEPALI KILLED', 'MID EAST'],
+  ['16 ODESA: GRAIN SHIPS HIT', 'EUROPE'],
+  ['17 PYONGYANG: MORE NUKES', 'E ASIA'],
+  ['18 HONG KONG: 168 REMEMBERED', 'E ASIA'],
+  ['19 NAIROBI: EBOLA SITE HALTED', 'AFRICA'],
+  ['20 BISSAU: VOTE TO 2028', 'AFRICA'],
+  ['21 DHAKA: 400 FACTORIES SHUT', 'S ASIA'],
+  ['22 KATHMANDU: 4,000 DEAD', 'S ASIA'],
+  ['23 BOGOR: MINE FLOOD KILLS 13', 'SE ASIA'],
+  ['24 NVIDIA HALTS AI SERVERS', 'SE ASIA'],
+  ['25 CALIFORNIA: KING TIDES', 'N AMERICA'],
+  ['26 OTTAWA: STUDENT CAPS', 'N AMERICA'],
+  ['27 LONDON: MIGRATION 77,000', 'EUROPE'],
+  ['28 PARIS: DEPARDIEU TRIAL', 'EUROPE'],
+  ['29 STOCKHOLM: CENTRE BACKS PM', 'EUROPE'],
+  ['30 MADRID: DE COS TO RUN ECB', 'EUROPE'],
+  ['31 BUENOS AIRES: RECESSION', 'LATIN AM'],
+  ['32 ARGENTINA: PRINTING HALT', 'LATIN AM'],
+  ['33 MEXICO: SPACEX TALKS', 'LATIN AM'],
+  ['34 SINNER OUT OF AUS OPEN', 'OCEANIA'],
+  ['35 CANBERRA: 2035 TARGET MISS', 'OCEANIA'],
+  ['36 TRUMP: PUTIN, PULL BACK', 'N AMERICA'],
+  ['37 KATZ: DISPLACE 1M GAZANS', 'MID EAST'],
 ];
 
-// Region tabs: [label, region key].
+// Region tabs: [label, count, region key].
 const TABS = [
   ['MIDEAST 7', 'MID EAST'],
   ['N AMER 6', 'N AMERICA'],
@@ -400,8 +440,7 @@ const TABS = [
   ['OCEANIA 2', 'OCEANIA'],
 ];
 
-// UTC timeline: [time + label, above?]. Dots spread 210..930, labels
-// staggered two rows with clear vertical separation (v4 nit: overlap).
+// UTC timeline: [time + label, above?].
 const TIMELINE = [
   ['00:51 KOREA', true],
   ['05:01 KIM', false],
@@ -415,23 +454,25 @@ const TIMELINE = [
 function drawPage() {
   const g = new Raster(W, H, PAPER);
 
-  // ---- Top strip: pixel font survives here as the identity accent --------
+  // ---- Top strip -----------------------------------------------------------
   g.rect(0, 0, W, 22, NAVY);
   drawText(g, 12, 3, 'THE WORLD IN ONE DAY', 2, GOLD);
   const topRight = '37 STORIES - 9 REGIONS - ALL FROM THU 26 NOV 2026';
   drawText(g, W - 12 - textWidth(topRight, 2), 3, topRight, 2, WHITE);
 
-  // ---- Masthead: huge serif, one line ------------------------------------
-  const mast = 'Thursday 26 November 2026';
-  drawSerif(g, (W - serifWidth(mast, 56)) / 2, 32, mast, 56, INK, 1.15);
+  // ---- Masthead ------------------------------------------------------------
+  // Serif display face (S60, cap 39px) — the newspaper's nameplate.
+  const mast = 'THURSDAY 26 NOVEMBER 2026';
+  drawSerif(g, (W - serifWidth(SERIF.S60, mast)) / 2, 77, SERIF.S60, mast, INK);
   g.rect(0, 96, W, 4, GOLD);
 
-  // ---- Red sub-headline, serif -------------------------------------------
-  const sub = 'Houthi drones hit Ras Tanura refinery · Three tankers mined in Hormuz · Tariffs on 14 partners';
-  drawSerif(g, (W - serifWidth(sub, 17)) / 2, 104, sub, 17, RED, 1);
+  // ---- Ticker --------------------------------------------------------------
+  g.rect(0, 100, W, 22, RED);
+  const tick = 'BRENT $94.61 +3.5% - RAS TANURA HIT - 3 TANKERS MINED - TARIFFS ON 14';
+  drawText(g, (W - textWidth(tick, 2)) / 2, 103, tick, 2, WHITE);
 
-  // ---- Stats strip (gold): big serif numbers ------------------------------
-  g.rect(0, 128, W, 48, GOLD);
+  // ---- Stats strip (gold) --------------------------------------------------
+  g.rect(0, 122, W, 46, GOLD);
   const stats = [
     ['$94.61', 'BRENT CRUDE'],
     ['3', 'TANKERS MINED'],
@@ -442,58 +483,49 @@ function drawPage() {
   ];
   for (let i = 0; i < 6; i++) {
     const cx0 = 2 + i * 170;
-    drawSerif(g, cx0 + (170 - serifWidth(stats[i][0], 25)) / 2, 130, stats[i][0], 25, NAVY, 1.25);
-    drawSerif(g, cx0 + (170 - serifWidth(stats[i][1], 10)) / 2, 164, stats[i][1], 10, NAVY, 1);
-    if (i > 0) g.rect(cx0, 134, 2, 36, GOLD_DARK);
+    drawSerif(g, cx0 + (170 - serifWidth(SERIF.S38, stats[i][0])) / 2, 150, SERIF.S38, stats[i][0], NAVY);
+    drawText(g, cx0 + (170 - textWidth(stats[i][1], 2)) / 2, 151, stats[i][1], 2, NAVY);
+    if (i > 0) g.rect(cx0, 128, 2, 34, GOLD_DARK);
   }
 
-  // ---- Region tabs: serif caps, gapped chips ------------------------------
+  // ---- Region tabs ---------------------------------------------------------
+  // 5px gaps between tabs (v4's 3px read as touching at thumbnail size).
   let tabW = 0;
-  for (const t of TABS) tabW += serifWidth(t[0], 12) + 14 + 6;
-  tabW -= 6;
+  for (const t of TABS) tabW += textWidth(t[0], 2) + 8 + 5;
+  tabW -= 5;
   let tx = (W - tabW) / 2;
   for (const t of TABS) {
-    const w = serifWidth(t[0], 12) + 14;
-    g.rect(tx, 180, w, 22, REGION_COLORS[t[1]]);
-    drawSerif(g, tx + 7, 184, t[0], 12, WHITE, 1);
-    tx += w + 6;
+    const w = textWidth(t[0], 2) + 8;
+    g.rect(tx, 168, w, 22, REGION_COLORS[t[1]]);
+    drawText(g, tx + 4, 172, t[0], 2, WHITE);
+    tx += w + 5;
   }
 
-  // ---- Timeline: THE DAY IN UTC, two staggered rows -----------------------
-  g.rect(0, 206, 150, 44, NAVY);
-  drawSerif(g, 12, 211, 'THE DAY', 12, WHITE, 1);
-  drawSerif(g, 12, 229, 'IN UTC', 12, WHITE, 1);
-  const tlX0 = 170, tlX1 = 1012, tlY = 228;
+  // ---- Timeline: THE DAY IN UTC --------------------------------------------
+  g.rect(0, 190, 184, 38, NAVY);
+  drawText(g, 12, 202, 'THE DAY IN UTC', 2, WHITE);
+  const tlX0 = 200, tlX1 = 1012, tlY = 209;
   g.rect(tlX0, tlY, tlX1 - tlX0, 2, NAVY);
-  const dotXs = [210, 330, 450, 570, 690, 810, 930];
+  // Dots spread so each label sits centred on its dot with clear air
+  // to the next label (v4's 120px spacing crowded 130px-wide labels).
+  const dotXs = [265, 375, 485, 595, 705, 825, 935];
   for (let i = 0; i < TIMELINE.length; i++) {
     const dx = dotXs[i];
     g.circle(dx, tlY + 1, 5, RED);
     g.circle(dx, tlY + 1, 2, WHITE);
     const label = TIMELINE[i][0];
-    const lw = serifWidth(label, 12);
+    const lw = textWidth(label, 2);
     let lx = dx - lw / 2;
     if (lx < tlX0) lx = tlX0;
     if (lx + lw > W - 4) lx = W - 4 - lw;
-    drawSerif(g, lx, TIMELINE[i][1] ? 208 : 236, label, 12, INK, 1);
+    drawText(g, lx, TIMELINE[i][1] ? 191 : 212, label, 2, INK);
   }
 
-  // ---- Helpers for story cells -------------------------------------------
+  // ---- Helpers for story cells ---------------------------------------------
   function chip(x, y, label, bg) {
     const w = textWidth(label, 2) + 10;
     g.rect(x, y, w, 16, bg);
     drawText(g, x + 5, y + 1, label, 2, WHITE);
-    return w;
-  }
-  function chipSm(x, y, label, bg) {
-    // v5c: serif chips, 12px tall, stacked with a clear gap above the
-    // caption bar. The old scale-2 pixel chips were 16px tall each, so the
-    // status chip (y+26..y+42) always covered the caption bar (y+33..y+46)
-    // and hid the caption text. Serif at cap 9 is also narrower
-    // (CONFIRMED ~62px vs 104px), so most of the scene stays visible.
-    const w = Math.ceil(serifWidth(label, 9)) + 10;
-    g.rect(x, y, w, 12, bg);
-    drawSerif(g, x + 5, y + 1.5, label, 9, WHITE, 1);
     return w;
   }
   function badge(cx, cy, n, scale) {
@@ -501,18 +533,9 @@ function drawPage() {
     const s = String(n);
     drawText(g, cx - textWidth(s, scale) / 2, cy - (scale === 2 ? 8 : 4), s, scale, WHITE);
   }
-  // Caption bar at the foot of an illustration, rank-1 style.
-  function caption(ix, iy, iw, capH, cap) {
-    g.rect(ix, iy + capH - 16, iw, 16, NAVY);
-    drawSerif(g, ix + (iw - serifWidth(cap, 10)) / 2, iy + capH - 14, cap, 10, WHITE, 1);
-  }
-  function captionSm(ix, iy, iw, capH, cap) {
-    g.rect(ix, iy + capH - 13, iw, 13, NAVY);
-    drawSerif(g, ix + (iw - serifWidth(cap, 9)) / 2, iy + capH - 11.5, cap, 9, WHITE, 1);
-  }
 
   // ---- Big 3 ---------------------------------------------------------------
-  const bigY = 254, bigH = 230, bigIlloH = 92;
+  const bigY = 228, bigH = 234, bigIlloH = 92;
   const bigCols = [
     { x: 12, w: 496 },
     { x: 516, w: 244 },
@@ -529,30 +552,29 @@ function drawPage() {
     g.setClip(bx + 2, bigY + 2, bw - 4, bigIlloH);
     st.draw(g, bx + 2, bigY + 2, bw - 4, bigIlloH);
     g.clearClip();
-    caption(bx + 2, bigY + 2, bw - 4, bigIlloH, st.cap);
     badge(bx + 18, bigY + 18, st.n, 2);
-    // Source + status chips STACKED top-right (v5 fix: the status chip
-    // used to sit at the foot and garble the caption bar).
     chip(bx + bw - 8 - (textWidth(st.src, 2) + 10), bigY + 8, st.src, RED);
-    chip(bx + bw - 8 - (textWidth(st.status, 2) + 10), bigY + 28, st.status, STATUS_COLORS[st.status]);
+    chip(bx + bw - 8 - (textWidth(st.status, 2) + 10), bigY + 2 + bigIlloH - 22, st.status, STATUS_COLORS[st.status]);
     const tx0 = bx + 12;
-    drawSerif(g, tx0, bigY + bigIlloH + 8, st.kick, 11, RED, 1);
-    const hs = st.lead ? 27 : 23;
-    const lh = st.lead ? 31 : 27;
-    let hy = bigY + bigIlloH + 8 + 16;
+    drawText(g, tx0, bigY + bigIlloH + 8, st.kick, 2, RED);
+    // Serif display headlines: lead S38 (cap 25), others S30 (cap 20).
+    const htab = st.lead ? SERIF.S38 : SERIF.S30;
+    const hcap = st.lead ? 25 : 20;
+    const lh = st.lead ? 36 : 28;
+    let hy = bigY + bigIlloH + 8 + 20;
     for (const line of st.head) {
-      drawSerif(g, tx0, hy, line, hs, INK, 1.2);
+      drawSerif(g, tx0, hy + hcap, htab, line, INK);
       hy += lh;
     }
     let sy = hy + 4;
     for (const line of st.sum) {
-      drawSerif(g, tx0, sy, line, 13, INK, 1);
-      sy += 17;
+      drawText(g, tx0, sy, line, 2, INK);
+      sy += 20;
     }
   }
 
   // ---- Small 10: two rows of five ------------------------------------------
-  const smY0 = 488, smH = 118, smW = 196, smGap = 8, smIlloH = 44;
+  const smY0 = 462, smH = 120, smW = 196, smGap = 8, smIlloH = 44;
   for (let i = 0; i < 10; i++) {
     const st = SMALL[i];
     const col = i % 5, row = (i / 5) | 0;
@@ -566,29 +588,25 @@ function drawPage() {
     g.setClip(cx + 2, cy + 2, smW - 4, smIlloH);
     st.draw(g, cx + 2, cy + 2, smW - 4, smIlloH);
     g.clearClip();
-    captionSm(cx + 2, cy + 2, smW - 4, smIlloH, st.cap);
     badge(cx + 14, cy + 14, st.n, 1);
-    // v5c: serif chips stacked top-right, clear of the caption bar:
-    // src cy+3..cy+15, status cy+16..cy+28, caption starts cy+33 —
-    // 5px of clear illustration between the status chip and the caption.
-    chipSm(cx + smW - 6 - (Math.ceil(serifWidth(st.src, 9)) + 10), cy + 3, st.src, RED);
-    chipSm(cx + smW - 6 - (Math.ceil(serifWidth(st.status, 9)) + 10), cy + 16, st.status, STATUS_COLORS[st.status]);
-    drawSerif(g, cx + 8, cy + smIlloH + 5, st.kick, 10, RED, 1);
-    let hy = cy + smIlloH + 5 + 13;
+    chip(cx + smW - 6 - (textWidth(st.src, 2) + 10), cy + 6, st.src, RED);
+    chip(cx + smW - 6 - (textWidth(st.status, 2) + 10), cy + 2 + smIlloH - 20, st.status, STATUS_COLORS[st.status]);
+    drawText(g, cx + 8, cy + smIlloH + 6, st.kick, 2, RED);
+    let hy = cy + smIlloH + 6 + 18;
     for (const line of st.head) {
-      drawSerif(g, cx + 8, hy, line, 15, INK, 1.2);
-      hy += 18;
+      drawText(g, cx + 8, hy, line, 2, INK);
+      hy += 16;
     }
-    drawSerif(g, cx + 8, hy + 2, st.sum[0], 12, GREY, 1);
+    drawText(g, cx + 8, hy + 2, st.sum[0], 2, GREY);
   }
 
   // ---- Section header: map + ALSO ------------------------------------------
-  drawSerif(g, 12, 734, 'WHERE IT HAPPENED · PINS ARE PICTURE NUMBERS', 13, RED, 1);
-  const alsoHead = 'ALSO ON 26 NOVEMBER · 24 MORE STORIES';
-  drawSerif(g, W - 12 - serifWidth(alsoHead, 13), 734, alsoHead, 13, RED, 1);
+  drawText(g, 12, 710, 'WHERE IT HAPPENED - PINS ARE PICTURE NUMBERS', 2, RED);
+  const alsoHead = 'ALSO ON 26 NOVEMBER - 24 MORE STORIES';
+  drawText(g, W - 12 - textWidth(alsoHead, 2), 710, alsoHead, 2, RED);
 
   // ---- Dotted world map ----------------------------------------------------
-  const mapX = 12, mapY = 752, cell = 5;
+  const mapX = 12, mapY = 726 + 34, cell = 5;
   for (let r = 0; r < MAP_ROWS.length; r++) {
     for (const seg of MAP_ROWS[r]) {
       for (let c = seg[0]; c <= seg[1]; c++) {
@@ -605,21 +623,21 @@ function drawPage() {
     g.rect(px - bw2 / 2, py - 6, bw2, 12, REGION_COLORS[pin[3]]);
     drawText(g, px - textWidth(s, 1) / 2, py - 4, s, 1, WHITE);
   }
-  drawSerif(g, 12, 890, 'Pins coloured by region', 11, GREY, 1);
+  drawText(g, 12, 906, 'PINS COLOURED BY REGION', 2, GREY);
 
-  // ---- ALSO list: two columns, sentence-case serif -------------------------
+  // ---- ALSO list: two columns ----------------------------------------------
   const listCols = [[324, 12], [672, 12]];
   for (let i = 0; i < ALSO.length; i++) {
     const col = i < 12 ? 0 : 1;
     const row = i % 12;
     const lx = listCols[col][0];
-    const ly = 750 + row * 14;
+    const ly = 726 + row * 16;
     const entry = ALSO[i][0];
     const sp = entry.indexOf(' ');
     const num = entry.slice(0, sp);
     const rest = entry.slice(sp);
-    drawSerif(g, lx, ly, num, 11, REGION_COLORS[ALSO[i][1]], 1.2);
-    drawSerif(g, lx + serifWidth(num, 11), ly, rest, 11, INK, 1);
+    drawText(g, lx, ly, num, 2, REGION_COLORS[ALSO[i][1]]);
+    drawText(g, lx + textWidth(num, 2), ly, rest, 2, INK);
   }
 
   // ---- DATE CHECK + HOW SURE -----------------------------------------------
@@ -628,25 +646,25 @@ function drawPage() {
   g.rect(12, 924, 2, 78, NAVY);
   g.rect(12 + 620 - 2, 924, 2, 78, NAVY);
   g.rect(12, 924 + 78 - 2, 620, 2, NAVY);
-  drawSerif(g, 24, 930, 'DATE CHECK', 13, NAVY, 1.2);
-  drawSerif(g, 24, 948, 'All 37 first reported 26 Nov 2026', 12.5, NAVY, 1);
-  drawSerif(g, 24, 964, 'in some time zone. Wed UTC = Thu Asia.', 12.5, NAVY, 1);
-  drawSerif(g, 24, 980, 'Left out: astronaut, Q3 GDP (25 Nov)', 12.5, NAVY, 1);
+  drawText(g, 24, 930, 'DATE CHECK', 2, NAVY);
+  drawText(g, 24, 948, 'ALL 37 FIRST REPORTED 26 NOV 2026', 2, NAVY);
+  drawText(g, 24, 964, 'IN SOME TIME ZONE. WED UTC = THU ASIA.', 2, NAVY);
+  drawText(g, 24, 980, 'LEFT OUT: ASTRONAUT, Q3 GDP (25 NOV)', 2, NAVY);
 
   g.rect(640, 924, 372, 78, CARD);
   g.rect(640, 924, 372, 2, NAVY);
   g.rect(640, 924, 2, 78, NAVY);
   g.rect(640 + 372 - 2, 924, 2, 78, NAVY);
   g.rect(640, 924 + 78 - 2, 372, 2, NAVY);
-  drawSerif(g, 652, 930, 'HOW SURE', 13, NAVY, 1.2);
-  drawSerif(g, 652, 948, 'Official: authority', 12.5, INK, 1);
-  drawSerif(g, 652, 964, 'Confirmed: 2+ outlets', 12.5, INK, 1);
-  drawSerif(g, 652, 980, 'Reported: 1 · Claim: one side', 12.5, INK, 1);
+  drawText(g, 652, 930, 'HOW SURE', 2, NAVY);
+  drawText(g, 652, 948, 'OFFICIAL: AUTHORITY', 2, INK);
+  drawText(g, 652, 964, 'CONFIRMED: 2+ OUTLETS', 2, INK);
+  drawText(g, 652, 980, 'REPORTED: 1 - CLAIM: ONE SIDE', 2, INK);
 
   // ---- Footer ---------------------------------------------------------------
   g.rect(0, 1002, W, 2, GOLD);
-  const foot = 'Sources: Reuters, Irna, BBC, AP, AFP, Euronews, Yonhap · Drawn scenes, not photos';
-  drawSerif(g, (W - serifWidth(foot, 11)) / 2, 1008, foot, 11, GREY, 1);
+  const foot = 'SOURCES: REUTERS, IRNA, BBC, AP, AFP, EURONEWS, YONHAP - DRAWN SCENES, NOT PHOTOS';
+  drawText(g, (W - textWidth(foot, 2)) / 2, 1008, foot, 2, GREY);
 
   return g;
 }

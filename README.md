@@ -24,24 +24,7 @@ anniversary and Constitution Day, and the FCC clearing SpaceX's "Starmind"
 network of 1 million orbital data-center satellites. Brent crude $94.61,
 up 3.5% (Wednesday's settled close).
 
-## v5 (27 Nov): serif rebuild — the legibility fix
-
-v4 scored 0.977198 (rank #10,888/27,417): the 5x8 pixel font turned to
-mush at 300px, so the judge could not read the masthead, the stats or the
-small headlines. v5 replaces it with a stroke serif font (`font.ts`:
-glyphs as polyline data, thick/thin contrast, slab serifs baked in) for
-the masthead, sub-headline, stats, tabs, timeline, headlines, summaries,
-ALSO list, date check and footer — sentence case, like the leaders
-(rank 1 "Hopeful Palette" 0.991711). The pixel font survives only as an
-identity accent: the top eyebrow strip and the numbered badges. Every
-illustration gains a caption bar at its foot, rank-1 style
-("AIR-DEFENCE SITE", "12,021 CASES"); source/status chips stack at the
-top-right so they never garble a caption; the timeline staggers two
-clear rows; the lead refinery is redrawn (white tanks, red stripe, one
-tall flare stack with a big flame and a tight smoke column) and the
-Kuwait launcher is pale steel with a white missile. Facts, story count
-(37), lead (Ras Tanura) and palette are v4's, unchanged. Deterministic:
-two runs produce byte-identical output (verified by sha256).
+## v4 (27 Nov): structural rebuild, 37 stories
 
 v2/v3 had only 6 stories — too thin against the leaders (41–48 stories).
 v4 rebuilds the page on the leaders' winning structure (masthead date,
@@ -57,6 +40,20 @@ New illustrations: Kuwait air-defence site, EU star circle, Ebola
 clinic, Giza fuel tanker, Bank of Korea, Thanksgiving storm, Bangkok
 refinery blast.
 
+## v6 (28 Nov, 00:00 WIB): v4 basis + real serif display face
+
+v5 (serif stroke font, redrawn scenes) regressed to 0.9486 — its
+hand-drawn serif was wobbly and its redrawn scenes lost detail and
+collided with chips. v6 reverts to v4 and changes only the display
+type: masthead, stats numbers and the big-3 headlines now use
+Liberation Serif Bold glyphs rasterized to 1-bit bitmaps at build time
+(`serif.ts`, blitted by `drawSerif` — no font file, no network at
+runtime), the way the top-10 entries all set their headlines in a real
+serif. Small-card headlines, kickers, summaries, labels and the ALSO
+list keep v4's crisp 5x8 pixel font. Nits fixed: 5px gaps between
+region tabs, timeline dots spread so labels sit centred with clear
+air, ALSO list starts 4px earlier with clear space above DATE CHECK.
+
 ## Run
 
 ```sh
@@ -66,6 +63,9 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ## Files
 
 - `main.ts` — the program: raster, PNG encoder, font, page layout.
+- `serif.ts` — Liberation Serif Bold glyphs rasterized to 1-bit bitmaps
+  (build-time; the program only blits them) for masthead, stats and
+  big headlines.
 - `art.ts` — the drawn illustrations (refinery, tanker, Gaza dove,
   Gateway of India, container ship + tariff badge, satellites over Earth,
   Kuwait site, EU stars, Ebola clinic, Giza tanker, Korea bank,
